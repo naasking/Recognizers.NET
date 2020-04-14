@@ -51,13 +51,13 @@ Phone:   555 555 555 ")]
         public static void CheckData(int phoneCount, int attnCount, string input)
         {
             var lines = input.Split('\n').Select(x => new Cursor(x));
-            var phones = Address.MaybePhoneNos(lines);
+            var phones = Address.PhoneNos(lines);
             Assert.Equal(phoneCount, phones.Count());
          
-            var attn = Address.MaybeAttention(lines);
+            var attn = Address.AttentionLines(lines);
             Assert.Equal(attnCount, attn.Count());
 
-            var code = Address.MaybePostalCode(lines);
+            var code = Address.PostalCodes(lines);
             Assert.Single(code);
             Assert.Equal("55555\r", code.Single().Input);
         }
