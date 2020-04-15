@@ -1,11 +1,12 @@
 # Recognizers.NET
 
 This is a simple combinator library for recognizing strings using only imperative constructs,
-no higher-order functions or other fancy features.
+no allocation, and higher-order functions or other fancy features. This makes the API suitable
+for use in imperative languages, like C.
 
 # Atoms
 
-Some simple "atom" recognizers, ie. recognizers for basic types:
+Some simple "atom" recognizers provided by the library, ie. recognizers for basic types:
 
     // recognize one digit
     public static bool Digit(ref this Input x, ref Position pos, string capture = null) =>
@@ -39,7 +40,7 @@ matches:
     public static bool BracketedDigits(this ref Input x, ref Position pos) =>
         pos.Save(out var i) && x.Chars('(', ref i) && x.Digits(ref i) && x.Chars(')', ref i) && pos.AdvanceTo(i);
 
-    // matches either "[A-z]" or "[0-9]"
+    // matches one character in the range [A-z] or [0-9]
     public static bool LetterOrDigit(ref this Input x, ref Position pos) =>
         (Letter(ref x, ref pos) || Digit(ref x, ref pos)) && pos.Advance();
 
@@ -59,3 +60,11 @@ Recognizer combinations can get quite sophisticated. Here's one for phone number
         && x.Optional(x.WhiteSpaces(ref i))
         && x.DelimitedDigits(ref i, ' ', '-')
         && pos.AdvanceTo(i);
+
+By convention, methods in plural form are greedy and will consume as many matching
+characters as possible, where singular form matches only a single instance.
+
+I'm not sure if this has ever been done before, but it's kind of neat that you can
+almost get to parser combinators without any dynamic allocation or higher-order
+functions. It only requires a little discipline in some cases, particularly around
+recursive combinators.
