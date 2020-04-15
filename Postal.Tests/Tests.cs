@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Linq;
 using Xunit;
-using Postal;
 
-namespace Postal.Tests
+namespace Recognizers.Tests
 {
     public class Tests
     {

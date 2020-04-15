@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Postal
+namespace Recognizers
 {
     /// <summary>
     /// Extension methods that implement recognizers atop <see cref="Input"/>.
@@ -185,7 +185,7 @@ namespace Postal
             && x.Optional(x.WhiteSpaces(ref i))
             && x.Optional(x.Digits(ref i))
             && x.Optional(x.WhiteSpaces(ref i))
-            && x.Optional(x.BracketedDigits(ref i) || x.Digits(ref i))
+            && x.Optional(x.BracketedDigits(ref i))
             && x.Optional(x.WhiteSpaces(ref i))
             && x.Optional(x.Char('/', ref i))
             && x.Optional(x.WhiteSpaces(ref i))

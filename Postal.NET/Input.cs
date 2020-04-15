@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Postal
+namespace Recognizers
 {
     /// <summary>
     /// Encapsulate an input.

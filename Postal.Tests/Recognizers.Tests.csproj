@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Postal.NET\Postal.NET.csproj" />
+    <ProjectReference Include="..\Postal.NET\Recognizers.NET.csproj" />
   </ItemGroup>
 
 </Project>
