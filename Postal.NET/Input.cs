@@ -7,13 +7,13 @@ namespace Postal
     /// <summary>
     /// Encapsulate an input.
     /// </summary>
-    public readonly struct Cursor
+    public readonly struct Input
     {
         /// <summary>
         /// Construct a new cursor.
         /// </summary>
         /// <param name="input">The input to proces.</param>
-        public Cursor(string input) : this()
+        public Input(string input) : this()
         {
             this.Value = input;
         }
@@ -86,6 +86,16 @@ namespace Postal
                 return false;
             Delta = Pos - newPosition.Pos;
             Pos = newPosition.Pos;
+            return true;
+        }
+
+        /// <summary>
+        /// Increment.
+        /// </summary>
+        /// <returns></returns>
+        public bool Advance()
+        {
+            Pos = Pos + 1;
             return true;
         }
     }

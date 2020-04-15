@@ -50,7 +50,7 @@ Fax:   (555) 555-555
 Phone:   555 555 555 ")]
         public static void CheckData(int phoneCount, int attnCount, string input)
         {
-            var lines = input.Split('\n').Select(x => new Cursor(x));
+            var lines = input.Split('\n').Select(x => new Input(x));
             var phones = Address.PhoneNos(lines);
             Assert.Equal(phoneCount, phones.Count());
          
