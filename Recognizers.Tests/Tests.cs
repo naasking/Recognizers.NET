@@ -81,6 +81,11 @@ Phone:   555 555 555 ")]
             var pos = new Position();
             Assert.Equal(isPhoneNo, source.PhoneNumber(ref pos));
             Assert.Equal(isPhoneNo, source.End(pos));
+            
+            // compare to regex
+            var rx = new System.Text.RegularExpressions.Regex("[\x020]*[+]?[\x020]*[0-9]*[\x020]*([(][0-9]+[)])?[\x020]*[/]?([0-9-\x020])+");
+            var match = rx.Match(input);
+            Assert.Equal(isPhoneNo, match.Success && match.Length == input.Length);
         }
     }
 }
