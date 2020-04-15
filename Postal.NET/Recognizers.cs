@@ -181,15 +181,15 @@ namespace Postal
         public static bool PhoneNumber(this ref Input x, ref Position pos) =>
                pos.Save(out var i)
             && x.Optional(x.WhiteSpaces(ref i))
-            && x.Optional(x.Chars('+', ref i))
+            && x.Optional(x.Char('+', ref i))
             && x.Optional(x.WhiteSpaces(ref i))
             && x.Optional(x.Digits(ref i))
             && x.Optional(x.WhiteSpaces(ref i))
-            && (x.BracketedDigits(ref i) || x.Digits(ref i))
+            && x.Optional(x.BracketedDigits(ref i) || x.Digits(ref i))
             && x.Optional(x.WhiteSpaces(ref i))
-            && x.Optional(x.Chars('/', ref i))
+            && x.Optional(x.Char('/', ref i))
             && x.Optional(x.WhiteSpaces(ref i))
-            && x.DelimitedDigits('-', ref i)
+            && (x.DelimitedDigits('-', ref i) || x.DelimitedDigits(' ', ref i))
             && pos.AdvanceTo(i);
 
         /// <summary>

@@ -61,5 +61,27 @@ Phone:   555 555 555 ")]
             Assert.Single(code);
             Assert.Equal("55555\r", code.Single().Value);
         }
+
+        [Theory]
+        [InlineData(true, "555-555")]
+        [InlineData(true, "(555) 555-555")]
+        [InlineData(true, "555 555-555")]
+        [InlineData(true, "555-555-555")]
+        [InlineData(true, "555-555 555")]
+        [InlineData(true, "+1 555-555 555")]
+        [InlineData(true, "+1 (555) 555 555")]
+        [InlineData(true, "(089) / 636-48018")]
+        [InlineData(true, "+49-89-636-48018")]
+        [InlineData(true, "19-49-89-636-48018")]
+        [InlineData(true, "191 541 754 3010")]
+        [InlineData(false, "5a5-555 555")]
+        [InlineData(false, "a555-555 555")]
+        public static void PhoneNumbers(bool isPhoneNo, string input)
+        {
+            var source = new Input(input);
+            var pos = new Position();
+            Assert.Equal(isPhoneNo, source.PhoneNumber(ref pos));
+            Assert.Equal(isPhoneNo, source.End(pos));
+        }
     }
 }
