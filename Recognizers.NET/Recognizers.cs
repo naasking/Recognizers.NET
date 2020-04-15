@@ -23,7 +23,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool Digit(ref this Input x, ref Position pos) =>
+        public static bool Digit(ref this Input x, ref Position pos, string capture = null) =>
             pos.Pos < x.Length && char.IsNumber(x[pos]) && pos.Advance();
 
         /// <summary>
@@ -127,6 +127,21 @@ namespace Recognizers
         }
 
         /// <summary>
+        /// Recognise a character.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="c"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public static bool Chars(ref this Input x, ref Position pos, params char[] c)
+        {
+            var i = pos;
+            while (i.Pos < x.Length && Array.IndexOf(c, x[i]) >= 0)
+                ++i.Pos;
+            return pos.AdvanceTo(i);
+        }
+
+        /// <summary>
         /// Recognize letters.
         /// </summary>
         /// <param name="x"></param>
@@ -189,8 +204,28 @@ namespace Recognizers
             && x.Optional(x.WhiteSpaces(ref i))
             && x.Optional(x.Char('/', ref i))
             && x.Optional(x.WhiteSpaces(ref i))
-            && (x.DelimitedDigits('-', ref i) || x.DelimitedDigits(' ', ref i))
+            && x.DelimitedDigits(ref i, ' ', '-')
             && pos.AdvanceTo(i);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="pos"></param>
+        /// <param name="delimiters"></param>
+        /// <returns></returns>
+        public static bool DelimitedDigits(this ref Input x, ref Position pos, params char[] delimiters)
+        {
+            var i = pos;
+            while (i.Pos < x.Length)
+            {
+                if (x.Digits(ref i) || x.Chars(ref i, delimiters))
+                    continue;
+                else
+                    break;
+            }
+            return pos.AdvanceTo(i);
+        }
 
         /// <summary>
         /// A delimited sequence of digits with optional whitespace.
@@ -198,15 +233,16 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool DelimitedDigits(this ref Input x, char c, ref Position pos)
+        public static bool DelimitedDigits(this ref Input x, char delimiter, ref Position pos)
         {
             var i = pos;
-            do
+            while (i.Pos < x.Length)
             {
-                x.WhiteSpaces(ref i);
-                x.Chars(c, ref i);
-                x.WhiteSpaces(ref i);
-            } while (i.Pos < x.Length && i.Save(out var loop) && x.Digits(ref loop) && i.AdvanceTo(loop));
+                if (x.Digits(ref i) || x.Chars(delimiter, ref i))
+                    continue;
+                else
+                    break;
+            }
             return pos.AdvanceTo(i);
         }
 
