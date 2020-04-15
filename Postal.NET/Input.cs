@@ -15,25 +15,25 @@ namespace Postal
         /// <param name="input">The input to proces.</param>
         public Cursor(string input) : this()
         {
-            this.Input = input;
+            this.Value = input;
         }
 
         /// <summary>
         /// The input being processed.
         /// </summary>
-        public string Input { get; }
+        public string Value { get; }
 
         /// <summary>
         /// The character at the given position.
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        public char this[Position x] => Input[x.Pos];
+        public char this[Position x] => Value[x.Pos];
 
         /// <summary>
         /// The input length.
         /// </summary>
-        public int Length => Input.Length;
+        public int Length => Value.Length;
 
         /// <summary>
         /// Start processing a rule at the input's start.
