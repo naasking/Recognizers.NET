@@ -7,33 +7,33 @@ namespace Postal
     /// <summary>
     /// Encapsulate an input.
     /// </summary>
-    public readonly struct Input
+    public readonly struct Cursor
     {
         /// <summary>
         /// Construct a new cursor.
         /// </summary>
         /// <param name="input">The input to proces.</param>
-        public Input(string input) : this()
+        public Cursor(string input) : this()
         {
-            this.Value = input;
+            this.Input = input;
         }
 
         /// <summary>
         /// The input being processed.
         /// </summary>
-        public string Value { get; }
+        public string Input { get; }
 
         /// <summary>
         /// The character at the given position.
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        public char this[Position x] => Value[x.Pos];
+        public char this[Position x] => Input[x.Pos];
 
         /// <summary>
         /// The input length.
         /// </summary>
-        public int Length => Value.Length;
+        public int Length => Input.Length;
 
         /// <summary>
         /// Start processing a rule at the input's start.
