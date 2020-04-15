@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Recognizers.Tests", "Recogn
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Recognizers.Bench", "Recognizers.Bench\Recognizers.Bench.csproj", "{9527398F-F2B3-4D75-BA47-35BEE545B914}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Recognizers.BenchCore", "Recognizers.BenchCore\Recognizers.BenchCore.csproj", "{DDE6D0EA-31D5-4D07-BBF8-D603916B720F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{9527398F-F2B3-4D75-BA47-35BEE545B914}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9527398F-F2B3-4D75-BA47-35BEE545B914}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9527398F-F2B3-4D75-BA47-35BEE545B914}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDE6D0EA-31D5-4D07-BBF8-D603916B720F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDE6D0EA-31D5-4D07-BBF8-D603916B720F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDE6D0EA-31D5-4D07-BBF8-D603916B720F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDE6D0EA-31D5-4D07-BBF8-D603916B720F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
