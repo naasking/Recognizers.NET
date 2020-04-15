@@ -15,7 +15,7 @@ namespace Recognizers
         /// <param name="input">The input to proces.</param>
         public Input(string input) : this()
         {
-            this.Value = input;
+            this.Value = input ?? throw new ArgumentNullException(nameof(input));
         }
 
         /// <summary>
