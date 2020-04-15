@@ -59,7 +59,7 @@ Phone:   555 555 555 ")]
 
             var code = Address.PostalCodes(lines);
             Assert.Single(code);
-            Assert.Equal("55555\r", code.Single().Input);
+            Assert.Equal("55555\r", code.Single().Value);
         }
     }
 }

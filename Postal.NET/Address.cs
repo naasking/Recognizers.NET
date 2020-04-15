@@ -11,7 +11,7 @@ namespace Postal
     public static class Address
     {
         public static IEnumerable<string> PhoneNos(string[] lines) =>
-            lines.Select(x => new Cursor(x)).PhoneNos().Select(x => x.Input);
+            lines.Select(x => new Cursor(x)).PhoneNos().Select(x => x.Value);
 
         public static IEnumerable<Cursor> PhoneNos(this IEnumerable<Cursor> lines) =>
             lines.Where(x => x.Begin(out var pos) &&

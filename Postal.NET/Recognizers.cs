@@ -26,7 +26,7 @@ namespace Postal
         public static bool Digits(ref this Cursor x, ref Position pos)
         {
             var i = pos;
-            while (i.Pos < x.Length && char.IsNumber(x.Input, i.Pos))
+            while (i.Pos < x.Length && char.IsNumber(x.Value, i.Pos))
                 ++i.Pos;
             return pos.AdvanceTo(i);
         }
