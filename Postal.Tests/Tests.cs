@@ -21,7 +21,7 @@ Phone: 555-555-5555")]
 3000 Some street
 Englewood, CO
 55555
-Phone: 555-555-5555")]
+Phone: +1 (555)-555-5555")]
         [InlineData(0, 1, @"Some address somewhere
 3000 Some street
 Englewood, CO
@@ -41,7 +41,7 @@ Attention:  Some Person")]
 3000 Some street
 Englewood, CO
 55555
-Fax:   555-555-555 ")]
+Fax:   +1 555-555-555 ")]
         [InlineData(2, 0, @"Some address somewhere
 3000 Some street
 Englewood, CO
@@ -50,7 +50,7 @@ Fax:   (555) 555-555
 Phone:   555 555 555 ")]
         public static void CheckData(int phoneCount, int attnCount, string input)
         {
-            var lines = input.Split('\n').Select(x => new Cursor(x));
+            var lines = input.Split('\n').Select(x => new Input(x));
             var phones = Address.PhoneNos(lines);
             Assert.Equal(phoneCount, phones.Count());
          
@@ -59,7 +59,7 @@ Phone:   555 555 555 ")]
 
             var code = Address.PostalCodes(lines);
             Assert.Single(code);
-            Assert.Equal("55555\r", code.Single().Input);
+            Assert.Equal("55555\r", code.Single().Value);
         }
     }
 }

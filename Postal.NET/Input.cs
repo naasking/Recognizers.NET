@@ -7,33 +7,33 @@ namespace Postal
     /// <summary>
     /// Encapsulate an input.
     /// </summary>
-    public struct Cursor
+    public readonly struct Input
     {
         /// <summary>
         /// Construct a new cursor.
         /// </summary>
         /// <param name="input">The input to proces.</param>
-        public Cursor(string input) : this()
+        public Input(string input) : this()
         {
-            this.Input = input;
+            this.Value = input;
         }
 
         /// <summary>
         /// The input being processed.
         /// </summary>
-        public string Input { get; private set; }
+        public string Value { get; }
 
         /// <summary>
         /// The character at the given position.
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        public char this[Position x] => Input[x.Pos];
+        public char this[Position x] => Value[x.Pos];
 
         /// <summary>
         /// The input length.
         /// </summary>
-        public int Length => Input.Length;
+        public int Length => Value.Length;
 
         /// <summary>
         /// Start processing a rule at the input's start.
@@ -43,32 +43,6 @@ namespace Postal
         public bool Begin(out Position pos)
         {
             pos = new Position { Pos = 0, Delta = 0 };
-            return true;
-        }
-
-        /// <summary>
-        /// Start processing a rule from the given position, <paramref name="cur"/>.
-        /// </summary>
-        /// <param name="cur"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public bool Begin(Position cur, out Position pos)
-        {
-            pos = new Position { Pos = cur.Pos, Delta = 0 };
-            return true;
-        }
-
-        /// <summary>
-        /// Advance <paramref name="pos"/> to the position given by <paramref name="newPosition"/>.
-        /// </summary>
-        /// <param name="newPosition"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public bool Advance(Position newPosition, ref Position pos)
-        {
-            if (pos.Pos == newPosition.Pos)
-                return false;
-            pos = newPosition;
             return true;
         }
 
@@ -88,5 +62,31 @@ namespace Postal
     {
         public int Pos;
         public int Delta;
+
+        /// <summary>
+        /// Start processing a rule at the input's start.
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public bool Save(out Position pos)
+        {
+            pos = this;
+            return true;
+        }
+
+        /// <summary>
+        /// Advance <paramref name="pos"/> to the position given by <paramref name="newPosition"/>.
+        /// </summary>
+        /// <param name="newPosition"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public bool AdvanceTo(Position newPosition)
+        {
+            if (Pos == newPosition.Pos)
+                return false;
+            Delta = Pos - newPosition.Pos;
+            Pos = newPosition.Pos;
+            return true;
+        }
     }
 }

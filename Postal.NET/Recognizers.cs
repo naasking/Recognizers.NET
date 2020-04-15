@@ -15,7 +15,7 @@ namespace Postal
         /// <param name="x"></param>
         /// <param name="match"></param>
         /// <returns></returns>
-        public static bool Optional(ref this Cursor x, bool match) => true;
+        public static bool Optional(ref this Input x, bool match) => true;
 
         /// <summary>
         /// Recognize numbers.
@@ -23,12 +23,12 @@ namespace Postal
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool Number(ref this Cursor x, ref Position pos)
+        public static bool Digits(ref this Input x, ref Position pos)
         {
             var i = pos;
-            while (i.Pos < x.Length && char.IsNumber(x.Input, i.Pos))
+            while (i.Pos < x.Length && char.IsNumber(x.Value, i.Pos))
                 ++i.Pos;
-            return x.Advance(i, ref pos);
+            return pos.AdvanceTo(i);
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Postal
         /// <param name="text"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool CaseSensitive(ref this Cursor x, string text, ref Position pos)
+        public static bool CaseSensitive(ref this Input x, string text, ref Position pos)
         {
             var i = pos;
             for (int j = 0; j < text.Length && i.Pos < x.Length; ++j)
@@ -47,7 +47,7 @@ namespace Postal
                     return false;
                 ++i.Pos;
             }
-            return x.Advance(i, ref pos);
+            return pos.AdvanceTo(i);
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Postal
         /// <param name="text"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool CaseInsensitive(ref this Cursor x, string text, ref Position pos)
+        public static bool CaseInsensitive(ref this Input x, string text, ref Position pos)
         {
             var i = pos;
             for (int j = 0; j < text.Length && i.Pos < x.Length; ++j)
@@ -66,7 +66,7 @@ namespace Postal
                     return false;
                 ++i.Pos;
             }
-            return x.Advance(i, ref pos);
+            return pos.AdvanceTo(i);
         }
 
         /// <summary>
@@ -75,12 +75,12 @@ namespace Postal
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool Whitespace(ref this Cursor x, ref Position pos)
+        public static bool Whitespace(ref this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsWhiteSpace(x[i]))
                 ++i.Pos;
-            return x.Advance(i, ref pos);
+            return pos.AdvanceTo(i);
         }
 
         /// <summary>
@@ -90,12 +90,12 @@ namespace Postal
         /// <param name="c"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool Char(ref this Cursor x, char c, ref Position pos)
+        public static bool Char(ref this Input x, char c, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && x[i] == c)
                 ++i.Pos;
-            return x.Advance(i, ref pos);
+            return pos.AdvanceTo(i);
         }
 
         /// <summary>
@@ -104,12 +104,12 @@ namespace Postal
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool Letters(ref this Cursor x, ref Position pos)
+        public static bool Letters(ref this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsLetter(x[i]))
                 ++i.Pos;
-            return x.Advance(i, ref pos);
+            return pos.AdvanceTo(i);
         }
 
         /// <summary>
@@ -118,12 +118,12 @@ namespace Postal
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool LettersOrDigits(ref this Cursor x, ref Position pos)
+        public static bool LettersOrDigits(ref this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsLetterOrDigit(x[i]))
                 ++i.Pos;
-            return x.Advance(i, ref pos);
+            return pos.AdvanceTo(i);
         }
 
         /// <summary>
@@ -132,17 +132,19 @@ namespace Postal
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool PhoneNumber(this ref Cursor x, ref Position pos) =>
-               x.Begin(pos, out var i)
+        public static bool PhoneNumber(this ref Input x, ref Position pos) =>
+               pos.Save(out var i)
             && x.Optional(x.Whitespace(ref i))
             && x.Optional(x.Char('+', ref i))
             && x.Optional(x.Whitespace(ref i))
-            && (x.BracketedDigits(ref i) || x.Number(ref i))
+            && x.Optional(x.Digits(ref i))
+            && x.Optional(x.Whitespace(ref i))
+            && (x.BracketedDigits(ref i) || x.Digits(ref i))
             && x.Optional(x.Whitespace(ref i))
             && x.Optional(x.Char('/', ref i))
             && x.Optional(x.Whitespace(ref i))
             && x.DelimitedDigits('-', ref i)
-            && x.Advance(i, ref pos);
+            && pos.AdvanceTo(i);
 
         /// <summary>
         /// A delimited sequence of digits with optional whitespace.
@@ -150,7 +152,7 @@ namespace Postal
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool DelimitedDigits(this ref Cursor x, char c, ref Position pos)
+        public static bool DelimitedDigits(this ref Input x, char c, ref Position pos)
         {
             var i = pos;
             do
@@ -158,8 +160,8 @@ namespace Postal
                 x.Whitespace(ref i);
                 x.Char(c, ref i);
                 x.Whitespace(ref i);
-            } while (i.Pos < x.Length && x.Begin(i, out var loop) && x.Number(ref loop) && x.Advance(loop, ref i));
-            return x.Advance(i, ref pos);
+            } while (i.Pos < x.Length && i.Save(out var loop) && x.Digits(ref loop) && i.AdvanceTo(loop));
+            return pos.AdvanceTo(i);
         }
 
         /// <summary>
@@ -168,8 +170,8 @@ namespace Postal
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool BracketedDigits(this ref Cursor x, ref Position pos) =>
-            x.Begin(pos, out var i) && x.Char('(', ref i) && x.Number(ref i) && x.Char(')', ref i) && x.Advance(i, ref pos);
+        public static bool BracketedDigits(this ref Input x, ref Position pos) =>
+            pos.Save(out var i) && x.Char('(', ref i) && x.Digits(ref i) && x.Char(')', ref i) && pos.AdvanceTo(i);
 
         /// <summary>
         /// Recognize a zip code.
@@ -177,8 +179,8 @@ namespace Postal
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool ZipCode(this ref Cursor x, ref Position pos) =>
-            x.Number(ref pos);
+        public static bool ZipCode(this ref Input x, ref Position pos) =>
+            x.Digits(ref pos);
 
         /// <summary>
         /// Recognize a Canadian postal code.
@@ -186,13 +188,13 @@ namespace Postal
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool PostalCode(this ref Cursor x, ref Position pos)
+        public static bool PostalCode(this ref Input x, ref Position pos)
         {
             var i = pos;
             if (!x.LettersOrDigits(ref i) || i.Delta != 3)
                 return false;
             x.Optional(x.Whitespace(ref i));
-            return x.LettersOrDigits(ref i) && i.Delta == 3 && x.Advance(i, ref pos);
+            return x.LettersOrDigits(ref i) && i.Delta == 3 && pos.AdvanceTo(i);
         }
 
         /// <summary>
@@ -201,7 +203,7 @@ namespace Postal
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool PostalOrZipCode(this ref Cursor x, ref Position pos) =>
+        public static bool PostalOrZipCode(this ref Input x, ref Position pos) =>
             x.ZipCode(ref pos) || x.PostalCode(ref pos);
 
         /// <summary>
@@ -210,11 +212,11 @@ namespace Postal
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool Attention(this ref Cursor x, ref Position pos) =>
-               x.Begin(pos, out var i)
+        public static bool Attention(this ref Input x, ref Position pos) =>
+               pos.Save(out var i)
             && x.AttentionLabel(ref i)
             && x.Optional(x.Char(':', ref i) || x.Whitespace(ref i))
-            && x.Advance(i, ref pos);
+            && pos.AdvanceTo(i);
 
         /// <summary>
         /// Recognize an attention label.
@@ -222,9 +224,9 @@ namespace Postal
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool AttentionLabel(this ref Cursor x, ref Position pos) =>
-               x.Begin(pos, out var j) && x.CaseInsensitive("Attention", ref j) && x.Advance(j, ref pos)
-            || x.Begin(pos, out var i) && x.CaseInsensitive("Attn", ref i) && x.Advance(i, ref pos)
-            || x.Begin(pos, out var k) && x.CaseInsensitive("Att", ref k) && x.Advance(k, ref pos);
+        public static bool AttentionLabel(this ref Input x, ref Position pos) =>
+               pos.Save(out var j) && x.CaseInsensitive("Attention", ref j) && pos.AdvanceTo(j)
+            || pos.Save(out var i) && x.CaseInsensitive("Attn", ref i) && pos.AdvanceTo(i)
+            || pos.Save(out var k) && x.CaseInsensitive("Att", ref k) && pos.AdvanceTo(k);
     }
 }
