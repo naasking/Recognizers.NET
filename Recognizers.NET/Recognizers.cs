@@ -15,7 +15,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="match"></param>
         /// <returns></returns>
-        public static bool Optional(ref this Input x, bool match) => true;
+        public static bool Optional(this Input x, bool match) => true;
 
         /// <summary>
         /// Recognize numbers.
@@ -23,7 +23,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool Digit(ref this Input x, ref Position pos, string capture = null) =>
+        public static bool Digit(this Input x, ref Position pos, string capture = null) =>
             pos.Pos < x.Length && char.IsNumber(x[pos]) && pos.Advance();
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool Digits(ref this Input x, ref Position pos)
+        public static bool Digits(this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsNumber(x[i]))
@@ -47,7 +47,7 @@ namespace Recognizers
         /// <param name="text"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool CaseSensitive(ref this Input x, string text, ref Position pos)
+        public static bool CaseSensitive(this Input x, string text, ref Position pos)
         {
             var i = pos;
             for (int j = 0; j < text.Length && i.Pos < x.Length; ++j)
@@ -66,7 +66,7 @@ namespace Recognizers
         /// <param name="text"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool CaseInsensitive(ref this Input x, string text, ref Position pos)
+        public static bool CaseInsensitive(this Input x, string text, ref Position pos)
         {
             var i = pos;
             for (int j = 0; j < text.Length && i.Pos < x.Length; ++j)
@@ -84,7 +84,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool WhiteSpace(ref this Input x, ref Position pos) =>
+        public static bool WhiteSpace(this Input x, ref Position pos) =>
             pos.Pos < x.Length && char.IsWhiteSpace(x[pos]) && pos.Advance();
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool WhiteSpaces(ref this Input x, ref Position pos)
+        public static bool WhiteSpaces(this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsWhiteSpace(x[i]))
@@ -108,7 +108,7 @@ namespace Recognizers
         /// <param name="c"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool Char(ref this Input x, char c, ref Position pos) =>
+        public static bool Char(this Input x, char c, ref Position pos) =>
             pos.Pos < x.Length && x[pos] == c && pos.Advance();
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace Recognizers
         /// <param name="c"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool Chars(ref this Input x, char c, ref Position pos)
+        public static bool Chars(this Input x, char c, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && x[i] == c)
@@ -133,7 +133,7 @@ namespace Recognizers
         /// <param name="c"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool Chars(ref this Input x, ref Position pos, params char[] c)
+        public static bool Chars(this Input x, ref Position pos, params char[] c)
         {
             var i = pos;
             while (i.Pos < x.Length && Array.IndexOf(c, x[i]) >= 0)
@@ -147,7 +147,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool Letter(ref this Input x, ref Position pos) =>
+        public static bool Letter(this Input x, ref Position pos) =>
             pos.Pos < x.Length && char.IsLetter(x[pos]) && pos.Advance();
 
         /// <summary>
@@ -156,7 +156,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool Letters(ref this Input x, ref Position pos)
+        public static bool Letters(this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsLetter(x[i]))
@@ -170,8 +170,8 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool LetterOrDigit(ref this Input x, ref Position pos) =>
-            (Letter(ref x, ref pos) || Digit(ref x, ref pos)) && pos.Advance();
+        public static bool LetterOrDigit(this Input x, ref Position pos) =>
+            (x.Letter(ref pos) || x.Digit(ref pos)) && pos.Advance();
 
         /// <summary>
         /// Recognize letters or digits.
@@ -179,7 +179,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool LettersOrDigits(ref this Input x, ref Position pos)
+        public static bool LettersOrDigits(this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsLetterOrDigit(x[i]))
