@@ -68,3 +68,7 @@ I'm not sure if this has ever been done before, but it's kind of neat that you c
 almost get to parser combinators without any dynamic allocation or higher-order
 functions. It only requires a little discipline in some cases, particularly around
 recursive combinators.
+
+Finally, this API isn't just suitable for strings, but can be written to operate
+on bits, bytes or tokens. This could make for some easy to read, but fast
+binary pattern matching.
