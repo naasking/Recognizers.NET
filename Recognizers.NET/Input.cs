@@ -98,11 +98,44 @@ namespace Recognizers
         }
 
         /// <summary>
+        /// Advance <paramref name="pos"/> to the position given by <paramref name="newPosition"/>.
+        /// </summary>
+        /// <param name="newPosition"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public bool AdvanceTo(Position newPosition, Input input, out ReadOnlySpan<char> capture)
+        {
+            if (Pos == newPosition.Pos)
+            {
+                capture = default(ReadOnlySpan<char>);
+                return false;
+            }
+            else
+            {
+                Delta = Pos - newPosition.Pos;
+                capture = input.Value.AsSpan(Pos, Delta);
+                Pos = newPosition.Pos;
+                return true;
+            }
+        }
+
+        /// <summary>
         /// Increment.
         /// </summary>
         /// <returns></returns>
         public bool Advance()
         {
+            Pos = Pos + 1;
+            return true;
+        }
+
+        /// <summary>
+        /// Increment.
+        /// </summary>
+        /// <returns></returns>
+        public bool Advance(Input input, out ReadOnlySpan<char> capture)
+        {
+            capture = input.Value.AsSpan(Pos, 1);
             Pos = Pos + 1;
             return true;
         }
