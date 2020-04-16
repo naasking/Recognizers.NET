@@ -13,7 +13,15 @@ namespace Recognizers
         /// Construct a new cursor.
         /// </summary>
         /// <param name="input">The input to proces.</param>
-        public Input(string input) : this()
+        public Input(string input) : this(input?.ToCharArray())
+        {
+        }
+
+        /// <summary>
+        /// Construct a new cursor.
+        /// </summary>
+        /// <param name="input">The input to proces.</param>
+        public Input(char[] input) : this()
         {
             this.Value = input ?? throw new ArgumentNullException(nameof(input));
         }
@@ -21,7 +29,7 @@ namespace Recognizers
         /// <summary>
         /// The input being processed.
         /// </summary>
-        public string Value { get; }
+        public char[] Value { get; }
 
         /// <summary>
         /// The character at the given position.
@@ -58,7 +66,7 @@ namespace Recognizers
     /// <summary>
     /// The current cursor's position.
     /// </summary>
-    public struct Position
+    public ref struct Position
     {
         public int Pos;
         public int Delta;

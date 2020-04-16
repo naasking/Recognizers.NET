@@ -10,8 +10,8 @@ namespace Recognizers
     /// </summary>
     public static class Address
     {
-        public static IEnumerable<string> PhoneNos(string[] lines) =>
-            lines.Select(x => new Input(x)).PhoneNos().Select(x => x.Value);
+        //public static IEnumerable<char[]> PhoneNos(string[] lines) =>
+        //    lines.Select(x => new Input(x)).PhoneNos().Select(x => x.Value);
 
         public static IEnumerable<Input> PhoneNos(this IEnumerable<Input> lines) =>
             lines.Where(x => x.Begin(out var pos) &&
