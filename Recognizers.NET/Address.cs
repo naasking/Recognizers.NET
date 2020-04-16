@@ -16,7 +16,7 @@ namespace Recognizers
         public static IEnumerable<Input> PhoneNos(this IEnumerable<Input> lines) =>
             lines.Where(x => x.Begin(out var pos) &&
                              x.Optional(x.WhiteSpaces(ref pos)) &&
-                             (x.CaseInsensitive("Fax", ref pos) || x.CaseInsensitive("Phone", ref pos)) &&
+                             (x.LiteralIgnoreCase("Fax", ref pos) || x.LiteralIgnoreCase("Phone", ref pos)) &&
                              x.Optional(x.WhiteSpaces(ref pos)) &&
                              x.Optional(x.Chars(':', ref pos)) &&
                              x.Optional(x.WhiteSpaces(ref pos)) &&

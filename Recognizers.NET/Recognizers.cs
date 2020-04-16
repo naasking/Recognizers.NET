@@ -9,6 +9,27 @@ namespace Recognizers
     /// </summary>
     public static class Recognizers
     {
+        #region Internal methods
+        /// <summary>
+        /// Return false after initializing the captured variable.
+        /// </summary>
+        static bool Fail(out ReadOnlySpan<char> capture)
+        {
+            capture = default(ReadOnlySpan<char>);
+            return false;
+        }
+
+        /// <summary>
+        /// Return false after initializing the captured variable.
+        /// </summary>
+        static bool Fail(out List<string> capture)
+        {
+            capture = default(List<string>);
+            return false;
+        }
+        #endregion
+
+        #region Core recognizers
         /// <summary>
         /// Recognition proceeds even without a match.
         /// </summary>
@@ -26,18 +47,6 @@ namespace Recognizers
         public static bool Digit(this Input x, ref Position pos) =>
             pos.Pos < x.Length && char.IsNumber(x[pos]) && pos.Advance();
 
-        static bool Fail(out ReadOnlySpan<char> capture)
-        {
-            capture = default(ReadOnlySpan<char>);
-            return false;
-        }
-
-        static bool Fail(out List<string> capture)
-        {
-            capture = default(List<string>);
-            return false;
-        }
-
         /// <summary>
         /// Recognize numbers.
         /// </summary>
@@ -45,7 +54,8 @@ namespace Recognizers
         /// <param name="pos"></param>
         /// <returns></returns>
         public static bool Digit(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-            pos.Pos < x.Length && char.IsNumber(x[pos]) && pos.Advance(x, out capture) || Fail(out capture);
+               pos.Pos < x.Length && char.IsNumber(x[pos]) && pos.Advance(x, out capture)
+            || Fail(out capture);
 
         /// <summary>
         /// Recognize numbers.
@@ -76,61 +86,47 @@ namespace Recognizers
         }
 
         /// <summary>
-        /// Case sensitive recognition of a string.
+        /// Recognize a string value.
         /// </summary>
         /// <param name="x"></param>
         /// <param name="text"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool CaseSensitive(this Input x, string text, ref Position pos)
-        {
-            var i = pos;
-            for (int j = 0; j < text.Length && i.Pos < x.Length; ++j)
-            {
-                if (x[i] != text[j])
-                    return false;
-                ++i.Pos;
-            }
-            return pos.AdvanceTo(i);
-        }
+        public static bool Literal(this Input x, string text, ref Position pos) =>
+            x.Literal(text, ref pos, StringComparison.Ordinal);
 
         /// <summary>
-        /// Case sensitive recognition of a string.
+        /// Recognize a string value.
         /// </summary>
         /// <param name="x"></param>
         /// <param name="text"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool CaseSensitive(this Input x, string text, ref Position pos, out ReadOnlySpan<char> capture)
-        {
-            var i = pos;
-            for (int j = 0; j < text.Length && i.Pos < x.Length; ++j)
-            {
-                if (x[i] != text[j])
-                    return Fail(out capture);
-                ++i.Pos;
-            }
-            return pos.AdvanceTo(i, x, out capture);
-        }
+        public static bool Literal(this Input x, string text, ref Position pos, out ReadOnlySpan<char> capture) =>
+            x.Literal(text, ref pos, StringComparison.Ordinal, out capture);
 
         /// <summary>
-        /// Case insensitive recognition of a string.
+        /// Recognize a string value.
         /// </summary>
         /// <param name="x"></param>
         /// <param name="text"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool CaseInsensitive(this Input x, string text, ref Position pos)
-        {
-            var i = pos;
-            for (int j = 0; j < text.Length && i.Pos < x.Length; ++j)
-            {
-                if (char.ToUpperInvariant(x[i]) != char.ToUpperInvariant(text[j]))
-                    return false;
-                ++i.Pos;
-            }
-            return pos.AdvanceTo(i);
-        }
+        public static bool Literal(this Input x, string text, ref Position pos, StringComparison compare) =>
+               text.AsSpan().Equals(x.Value.AsSpan(pos.Pos, text.Length), compare)
+            && pos.AdvanceTo(new Position { Pos = pos.Pos + text.Length });
+
+        /// <summary>
+        /// Recognize a string value.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="text"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public static bool Literal(this Input x, string text, ref Position pos, StringComparison compare, out ReadOnlySpan<char> capture) =>
+               text.AsSpan().Equals(x.Value.AsSpan(pos.Pos, text.Length), compare)
+            && pos.AdvanceTo(new Position { Pos = pos.Pos + text.Length }, x, out capture)
+            || Fail(out capture);
 
         /// <summary>
         /// Case insensitive recognition of a string.
@@ -139,17 +135,18 @@ namespace Recognizers
         /// <param name="text"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool CaseInsensitive(this Input x, string text, ref Position pos, out ReadOnlySpan<char> capture)
-        {
-            var i = pos;
-            for (int j = 0; j < text.Length && i.Pos < x.Length; ++j)
-            {
-                if (char.ToUpperInvariant(x[i]) != char.ToUpperInvariant(text[j]))
-                    return Fail(out capture);
-                ++i.Pos;
-            }
-            return pos.AdvanceTo(i, x, out capture);
-        }
+        public static bool LiteralIgnoreCase(this Input x, string text, ref Position pos) =>
+            x.Literal(text, ref pos, StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Case insensitive recognition of a string.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="text"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public static bool LiteralIgnoreCase(this Input x, string text, ref Position pos, out ReadOnlySpan<char> capture) =>
+            x.Literal(text, ref pos, StringComparison.OrdinalIgnoreCase, out capture);
 
         /// <summary>
         /// Recognize whitespace.
@@ -167,7 +164,8 @@ namespace Recognizers
         /// <param name="pos"></param>
         /// <returns></returns>
         public static bool WhiteSpace(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-            pos.Pos < x.Length && char.IsWhiteSpace(x[pos]) && pos.Advance(x, out capture) || Fail(out capture);
+               pos.Pos < x.Length && char.IsWhiteSpace(x[pos]) && pos.Advance(x, out capture)
+            || Fail(out capture);
 
         /// <summary>
         /// Recognize whitespace.
@@ -217,7 +215,8 @@ namespace Recognizers
         /// <param name="pos"></param>
         /// <returns></returns>
         public static bool Char(this Input x, char c, ref Position pos, out ReadOnlySpan<char> capture) =>
-            pos.Pos < x.Length && x[pos] == c && pos.Advance(x, out capture) || Fail(out capture);
+               pos.Pos < x.Length && x[pos] == c && pos.Advance(x, out capture)
+            || Fail(out capture);
 
         /// <summary>
         /// Recognise a character.
@@ -250,6 +249,37 @@ namespace Recognizers
         }
 
         /// <summary>
+        /// Consume all characters until the given character is seen.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="c"></param>
+        /// <param name="pos"></param>
+        public static bool CharsUntil(this Input x, char c, ref Position pos)
+        {
+            var i = pos;
+            while (i.Pos < x.Length && x[i] != c)
+                ++i.Pos;
+            return pos.AdvanceTo(i);
+        }
+
+        /// <summary>
+        /// Consume all characters until the given character is seen.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="c"></param>
+        /// <param name="pos"></param>
+        /// <param name="capture"></param>
+        /// <returns></returns>
+        public static bool CharsUntil(this Input x, char c, ref Position pos, out ReadOnlySpan<char> capture)
+        {
+            var i = pos;
+            while (i.Pos < x.Length && x[i] != c)
+                ++i.Pos;
+            return pos.AdvanceTo(i, x, out capture);
+        }
+
+
+        /// <summary>
         /// Recognise a character.
         /// </summary>
         /// <param name="x"></param>
@@ -259,8 +289,25 @@ namespace Recognizers
         public static bool Chars(this Input x, ref Position pos, params char[] c)
         {
             var i = pos;
-            while (i.Pos < x.Length && Array.IndexOf(c, x[i]) >= 0)
-                ++i.Pos;
+            switch (c.Length)
+            {
+                case 0:
+                    return false;
+                case 1:
+                    return x.Chars(c[0], ref pos);
+                case 2:
+                    while (i.Pos < x.Length && (x[i] == c[0] || x[i] == c[1]))
+                        ++i.Pos;
+                    break;
+                case 3:
+                    while (i.Pos < x.Length && (x[i] == c[0] || x[i] == c[1] || x[i] == c[2]))
+                        ++i.Pos;
+                    break;
+                default:
+                    while (i.Pos < x.Length && Array.IndexOf(c, x[i]) >= 0)
+                        ++i.Pos;
+                    break;
+            }
             return pos.AdvanceTo(i);
         }
 
@@ -274,8 +321,25 @@ namespace Recognizers
         public static bool Chars(this Input x, ref Position pos, out ReadOnlySpan<char> capture, params char[] c)
         {
             var i = pos;
-            while (i.Pos < x.Length && Array.IndexOf(c, x[i]) >= 0)
-                ++i.Pos;
+            switch (c.Length)
+            {
+                case 0:
+                    return Fail(out capture);
+                case 1:
+                    return x.Chars(c[0], ref pos, out capture);
+                case 2:
+                    while (i.Pos < x.Length && (x[i] == c[0] || x[i] == c[1]))
+                        ++i.Pos;
+                    break;
+                case 3:
+                    while (i.Pos < x.Length && (x[i] == c[0] || x[i] == c[1] || x[i] == c[2]))
+                        ++i.Pos;
+                    break;
+                default:
+                    while (i.Pos < x.Length && Array.IndexOf(c, x[i]) >= 0)
+                        ++i.Pos;
+                    break;
+            }
             return pos.AdvanceTo(i, x, out capture);
         }
 
@@ -295,7 +359,8 @@ namespace Recognizers
         /// <param name="pos"></param>
         /// <returns></returns>
         public static bool Letter(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-            pos.Pos < x.Length && char.IsLetter(x[pos]) && pos.Advance(x, out capture) || Fail(out capture);
+               pos.Pos < x.Length && char.IsLetter(x[pos]) && pos.Advance(x, out capture)
+            || Fail(out capture);
 
         /// <summary>
         /// Recognize letters.
@@ -371,14 +436,16 @@ namespace Recognizers
                 ++i.Pos;
             return pos.AdvanceTo(i, x, out capture);
         }
+        #endregion
 
+        #region Extensions
         /// <summary>
         /// Recognize a phone number.
         /// </summary>
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool PhoneNumber(this ref Input x, ref Position pos) =>
+        public static bool PhoneNumber(this Input x, ref Position pos) =>
                pos.Save(out var i)
             && x.Optional(x.WhiteSpaces(ref i))
             && x.Optional(x.Char('+', ref i))
@@ -398,7 +465,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool PhoneNumber(this ref Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
+        public static bool PhoneNumber(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
                pos.Save(out var i)
             && x.Optional(x.WhiteSpaces(ref i))
             && x.Optional(x.Char('+', ref i))
@@ -419,7 +486,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool PhoneNumber(this ref Input x, ref Position pos, out List<string> capture) =>
+        public static bool PhoneNumber(this Input x, ref Position pos, out List<string> capture) =>
                pos.Save(out var i)
             && x.Optional(x.WhiteSpaces(ref i))
             && x.Optional(x.Char('+', ref i))
@@ -449,14 +516,12 @@ namespace Recognizers
         /// <param name="pos"></param>
         /// <param name="delimiters"></param>
         /// <returns></returns>
-        public static bool DelimitedDigits(this ref Input x, ref Position pos, params char[] delimiters)
+        public static bool DelimitedDigits(this Input x, ref Position pos, params char[] delimiters)
         {
             var i = pos;
             while (i.Pos < x.Length)
             {
-                if (x.Digits(ref i) || x.Chars(ref i, delimiters))
-                    continue;
-                else
+                if (!x.Digits(ref i) && !x.Chars(ref i, delimiters))
                     break;
             }
             return pos.AdvanceTo(i);
@@ -469,43 +534,15 @@ namespace Recognizers
         /// <param name="pos"></param>
         /// <param name="delimiters"></param>
         /// <returns></returns>
-        public static bool DelimitedDigits(this ref Input x, ref Position pos, out List<string> capture, params char[] delimiters)
+        public static bool DelimitedDigits(this Input x, ref Position pos, out List<string> capture, params char[] delimiters)
         {
             var i = pos;
             capture = null;
             while (i.Pos < x.Length)
             {
                 if (x.Digits(ref i, out var data))
-                {
                     (capture ?? (capture = new List<string>())).Add(data.ToString());
-                    continue;
-                }
-                else if (x.Chars(ref i, out data, delimiters))
-                {
-                    continue;
-                }
-                else
-                {
-                    break;
-                }
-            }
-            return pos.AdvanceTo(i);
-        }
-
-        /// <summary>
-        /// A delimited sequence of digits with optional whitespace.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool DelimitedDigits(this ref Input x, char delimiter, ref Position pos)
-        {
-            var i = pos;
-            while (i.Pos < x.Length)
-            {
-                if (x.Digits(ref i) || x.Chars(delimiter, ref i))
-                    continue;
-                else
+                else if (!x.Chars(ref i, out data, delimiters))
                     break;
             }
             return pos.AdvanceTo(i);
@@ -517,14 +554,29 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool DelimitedDigits(this ref Input x, char delimiter, ref Position pos, out ReadOnlySpan<char> capture)
+        public static bool DelimitedDigits(this Input x, char delimiter, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length)
             {
-                if (x.Digits(ref i) || x.Chars(delimiter, ref i))
-                    continue;
-                else
+                if (!x.Digits(ref i) && !x.Chars(delimiter, ref i))
+                    break;
+            }
+            return pos.AdvanceTo(i);
+        }
+
+        /// <summary>
+        /// A delimited sequence of digits with optional whitespace.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public static bool DelimitedDigits(this Input x, char delimiter, ref Position pos, out ReadOnlySpan<char> capture)
+        {
+            var i = pos;
+            while (i.Pos < x.Length)
+            {
+                if (!x.Digits(ref i) && !x.Chars(delimiter, ref i))
                     break;
             }
             return pos.AdvanceTo(i, x, out capture);
@@ -536,7 +588,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool DelimitedDigits(this ref Input x, char delimiter, ref Position pos, out List<string> capture)
+        public static bool DelimitedDigits(this Input x, char delimiter, ref Position pos, out List<string> capture)
         {
             var i = pos;
             capture = null;
@@ -544,10 +596,7 @@ namespace Recognizers
             {
                 var data = default(ReadOnlySpan<char>);
                 if (x.Digits(ref i, out data) || x.Chars(delimiter, ref i, out data))
-                {
                     (capture ?? (capture = new List<string>())).Add(data.ToString());
-                    continue;
-                }
                 else
                     break;
             }
@@ -560,7 +609,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool BracketedDigits(this ref Input x, ref Position pos) =>
+        public static bool BracketedDigits(this Input x, ref Position pos) =>
             pos.Save(out var i) && x.Chars('(', ref i) && x.Digits(ref i) && x.Chars(')', ref i) && pos.AdvanceTo(i);
 
         /// <summary>
@@ -569,8 +618,8 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool BracketedDigits(this ref Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-            pos.Save(out var i) && x.Chars('(', ref i) && x.Digits(ref i, out capture) && x.Chars(')', ref i) && pos.AdvanceTo(i)
+        public static bool BracketedDigits(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
+               pos.Save(out var i) && x.Chars('(', ref i) && x.Digits(ref i, out capture) && x.Chars(')', ref i) && pos.AdvanceTo(i)
             || Fail(out capture);
 
         /// <summary>
@@ -579,7 +628,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool BracketedDigit(this ref Input x, ref Position pos) =>
+        public static bool BracketedDigit(this Input x, ref Position pos) =>
             pos.Save(out var i) && x.Chars('(', ref i) && x.Digit(ref i) && x.Chars(')', ref i) && pos.AdvanceTo(i);
 
         /// <summary>
@@ -588,8 +637,8 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool BracketedDigit(this ref Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-            pos.Save(out var i) && x.Chars('(', ref i) && x.Digit(ref i, out capture) && x.Chars(')', ref i) && pos.AdvanceTo(i)
+        public static bool BracketedDigit(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
+               pos.Save(out var i) && x.Chars('(', ref i) && x.Digit(ref i, out capture) && x.Chars(')', ref i) && pos.AdvanceTo(i)
             || Fail(out capture);
 
         /// <summary>
@@ -598,7 +647,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool ZipCode(this ref Input x, ref Position pos) =>
+        public static bool ZipCode(this Input x, ref Position pos) =>
             x.Digits(ref pos);
 
         /// <summary>
@@ -607,7 +656,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool ZipCode(this ref Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
+        public static bool ZipCode(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
             x.Digits(ref pos, out capture);
 
         /// <summary>
@@ -616,7 +665,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool PostalCode(this ref Input x, ref Position pos)
+        public static bool PostalCode(this Input x, ref Position pos)
         {
             var i = pos;
             if (!x.LettersOrDigits(ref i) || i.Delta != 3)
@@ -631,7 +680,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool PostalCode(this ref Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        public static bool PostalCode(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
             if (!x.LettersOrDigits(ref i) || i.Delta != 3)
@@ -647,7 +696,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool PostalOrZipCode(this ref Input x, ref Position pos) =>
+        public static bool PostalOrZipCode(this Input x, ref Position pos) =>
             x.ZipCode(ref pos) || x.PostalCode(ref pos);
 
         /// <summary>
@@ -656,7 +705,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool PostalOrZipCode(this ref Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
+        public static bool PostalOrZipCode(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
             x.ZipCode(ref pos, out capture) || x.PostalCode(ref pos, out capture);
 
         /// <summary>
@@ -665,7 +714,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool Attention(this ref Input x, ref Position pos) =>
+        public static bool Attention(this Input x, ref Position pos) =>
                pos.Save(out var i)
             && x.AttentionLabel(ref i)
             && x.Optional(x.Chars(':', ref i) || x.WhiteSpaces(ref i))
@@ -677,7 +726,7 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool Attention(this ref Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
+        public static bool Attention(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
                pos.Save(out var i)
             && x.AttentionLabel(ref i, out capture)
             && x.Optional(x.Chars(':', ref i) || x.WhiteSpaces(ref i))
@@ -690,10 +739,10 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool AttentionLabel(this ref Input x, ref Position pos) =>
-               pos.Save(out var j) && x.CaseInsensitive("Attention", ref j) && pos.AdvanceTo(j)
-            || pos.Save(out var i) && x.CaseInsensitive("Attn", ref i) && pos.AdvanceTo(i)
-            || pos.Save(out var k) && x.CaseInsensitive("Att", ref k) && pos.AdvanceTo(k);
+        public static bool AttentionLabel(this Input x, ref Position pos) =>
+               pos.Save(out var j) && x.LiteralIgnoreCase("Attention", ref j) && pos.AdvanceTo(j)
+            || pos.Save(out var i) && x.LiteralIgnoreCase("Attn", ref i) && pos.AdvanceTo(i)
+            || pos.Save(out var k) && x.LiteralIgnoreCase("Att", ref k) && pos.AdvanceTo(k);
 
         /// <summary>
         /// Recognize an attention label.
@@ -701,10 +750,64 @@ namespace Recognizers
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool AttentionLabel(this ref Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-               pos.Save(out var j) && x.CaseInsensitive("Attention", ref j) && pos.AdvanceTo(j, x, out capture)
-            || pos.Save(out var i) && x.CaseInsensitive("Attn", ref i) && pos.AdvanceTo(i, x, out capture)
-            || pos.Save(out var k) && x.CaseInsensitive("Att", ref k) && pos.AdvanceTo(k, x, out capture)
+        public static bool AttentionLabel(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
+               pos.Save(out var j) && x.LiteralIgnoreCase("Attention", ref j) && pos.AdvanceTo(j, x, out capture)
+            || pos.Save(out var i) && x.LiteralIgnoreCase("Attn", ref i) && pos.AdvanceTo(i, x, out capture)
+            || pos.Save(out var k) && x.LiteralIgnoreCase("Att", ref k) && pos.AdvanceTo(k, x, out capture)
             || Fail(out capture);
+
+        /// <summary>
+        /// Recognize a key-value pair, ie. foo="bar"
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="eq"></param>
+        /// <param name="pos"></param>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static bool KeyValuePair(this ref Input x, char eq, ref Position pos, out ReadOnlySpan<char> key, out ReadOnlySpan<char> value) =>
+               pos.Save(out var i)
+            && x.CharsUntil(eq, ref i, out key)
+            && x.Char('"', ref i)
+            && x.CharsUntil('"', ref i, out value)
+            && pos.AdvanceTo(i)
+            || Fail(out key) | Fail(out value);
+
+        /// <summary>
+        /// Recognize a key-value pair, ie. foo="bar"
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="eq"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public static bool KeyValuePair(this ref Input x, char eq, ref Position pos) =>
+               pos.Save(out var i)
+            && x.CharsUntil(eq, ref i)
+            && x.Char('"', ref i)
+            && x.CharsUntil('"', ref i)
+            && pos.AdvanceTo(i);
+
+        /// <summary>
+        /// Capture a set of key-value pairs.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="eq"></param>
+        /// <param name="pos"></param>
+        /// <param name="kv"></param>
+        /// <returns></returns>
+        public static bool KeyValuePairs(this ref Input x, char eq, ref Position pos, out Dictionary<string, string> kv)
+        {
+            var i = pos;
+            kv = new Dictionary<string, string>();
+            while (i.Pos < x.Length)
+            {
+                if (x.KeyValuePair(eq, ref i, out var key, out var value))
+                    kv.Add(key.ToString(), value.ToString());
+                else
+                    break;
+            }
+            return pos.AdvanceTo(i);
+        }
+        #endregion
     }
 }
