@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -81,6 +82,20 @@ Phone:   555 555 555 ")]
             var pos = new Position();
             Assert.Equal(isPhoneNo, source.PhoneNumber(ref pos));
             Assert.Equal(isPhoneNo, source.End(pos));
+
+            // check string capture
+            var pos2 = new Position();
+            Assert.Equal(isPhoneNo, source.PhoneNumber(ref pos2, out ReadOnlySpan<char> capture));
+            if (isPhoneNo)
+            {
+                Assert.Equal(input, capture.ToString());
+
+                // check digits capture
+                var pos3 = new Position();
+                Assert.Equal(isPhoneNo, source.PhoneNumber(ref pos3, out List<string> digits));
+                var parts = input.Split(new[] { ' ', '-', '(', ')', '+', '/' }, StringSplitOptions.RemoveEmptyEntries);
+                Assert.Equal(parts, digits);
+            }
             
             // compare to regex
             var rx = new System.Text.RegularExpressions.Regex("[\x020]*[+]?[\x020]*[0-9]*[\x020]*([(][0-9]+[)])?[\x020]*[/]?([0-9-\x020])+");

@@ -112,7 +112,7 @@ namespace Recognizers
             }
             else
             {
-                Delta = Pos - newPosition.Pos;
+                Delta = newPosition.Pos - Pos;
                 capture = input.Value.AsSpan(Pos, Delta);
                 Pos = newPosition.Pos;
                 return true;

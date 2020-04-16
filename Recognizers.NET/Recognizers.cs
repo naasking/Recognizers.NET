@@ -32,6 +32,12 @@ namespace Recognizers
             return false;
         }
 
+        static bool Fail(out List<string> capture)
+        {
+            capture = default(List<string>);
+            return false;
+        }
+
         /// <summary>
         /// Recognize numbers.
         /// </summary>
@@ -407,29 +413,32 @@ namespace Recognizers
             && pos.AdvanceTo(i, x, out capture)
             || Fail(out capture);
 
-        ///// <summary>
-        ///// Recognize a phone number.
-        ///// </summary>
-        ///// <param name="x"></param>
-        ///// <param name="pos"></param>
-        ///// <returns></returns>
-        //public static bool PhoneNumber(this ref Input x, ref Position pos, ref List<string> capture) =>
-        //       pos.Save(out var i)
-        //    && x.Optional(x.WhiteSpaces(ref i))
-        //    && x.Optional(x.Char('+', ref i))
-        //    && x.Optional(x.WhiteSpaces(ref i))
-        //    && x.Optional(x.Digits(ref i, ref var digits))
-        //    && x.Optional(x.WhiteSpaces(ref i))
-        //    && x.Optional(x.BracketedDigits(ref i))
-        //    && x.Optional(x.WhiteSpaces(ref i))
-        //    && x.Optional(x.Char('/', ref i))
-        //    && x.Optional(x.WhiteSpaces(ref i))
-        //    && x.DelimitedDigits(ref i, ' ', '-')
-        //    && pos.AdvanceTo(i);
+        /// <summary>
+        /// Recognize a phone number.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public static bool PhoneNumber(this ref Input x, ref Position pos, out List<string> capture) =>
+               pos.Save(out var i)
+            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.Char('+', ref i))
+            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.Digits(ref i, out var d1))
+            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.BracketedDigits(ref i, out var d2))
+            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.Char('/', ref i))
+            && x.Optional(x.WhiteSpaces(ref i))
+            && x.DelimitedDigits(ref i, out capture, ' ', '-')
+            && (d2.Length == 0 || capture.Push(d2))
+            && (d1.Length == 0 || capture.Push(d1))
+            && pos.AdvanceTo(i)
+            || Fail(out capture);
 
-        static bool Init(ref List<string> capture)
+        static bool Push(this List<string> capture, ReadOnlySpan<char> arg)
         {
-            capture = capture ?? (capture = new List<string>());
+            capture.Insert(0, arg.ToString());
             return true;
         }
 
@@ -449,6 +458,36 @@ namespace Recognizers
                     continue;
                 else
                     break;
+            }
+            return pos.AdvanceTo(i);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="pos"></param>
+        /// <param name="delimiters"></param>
+        /// <returns></returns>
+        public static bool DelimitedDigits(this ref Input x, ref Position pos, out List<string> capture, params char[] delimiters)
+        {
+            var i = pos;
+            capture = null;
+            while (i.Pos < x.Length)
+            {
+                if (x.Digits(ref i, out var data))
+                {
+                    (capture ?? (capture = new List<string>())).Add(data.ToString());
+                    continue;
+                }
+                else if (x.Chars(ref i, out data, delimiters))
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
             }
             return pos.AdvanceTo(i);
         }
