@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Recognizers.Tests
 {
-    public class Tests
+    public static class Tests
     {
         // examples:
         // http://stdcxx.apache.org/doc/stdlibug/26-1.html
@@ -60,6 +60,27 @@ Phone:   555 555 555 ")]
             var code = Address.PostalCodes(lines);
             Assert.Single(code);
             Assert.Equal("55555\r", code.Single().Value);
+        }
+
+        [Theory]
+        [InlineData(true, '=', "key=\"value\"")]
+        [InlineData(true, ':', "key:\"value\"")]
+        [InlineData(false, '=', "key=value")]
+        [InlineData(false, '=', "key \"value\"")]
+        public static void KeyValuePairs(bool isValid, char eq, string input)
+        {
+            var source = new Input(input);
+            var pos = new Position();
+            Assert.Equal(isValid, source.KeyValuePair(eq, ref pos));
+            Assert.Equal(isValid, source.End(pos));
+
+            if (isValid)
+            {
+                var pos2 = new Position();
+                Assert.True(source.KeyValuePair(eq, ref pos2, out var key, out var value));
+                Assert.Equal("key", key.ToString());
+                Assert.Equal("value", value.ToString());
+            }
         }
 
         [Theory]

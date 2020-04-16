@@ -113,7 +113,8 @@ namespace Recognizers
         /// <param name="pos"></param>
         /// <returns></returns>
         public static bool Literal(this Input x, string text, ref Position pos, StringComparison compare) =>
-               text.AsSpan().Equals(x.Value.AsSpan(pos.Pos, text.Length), compare)
+               pos.Pos + text.Length < x.Length
+            && text.AsSpan().Equals(x.Value.AsSpan(pos.Pos, text.Length), compare)
             && pos.AdvanceTo(new Position { Pos = pos.Pos + text.Length });
 
         /// <summary>
@@ -124,7 +125,8 @@ namespace Recognizers
         /// <param name="pos"></param>
         /// <returns></returns>
         public static bool Literal(this Input x, string text, ref Position pos, StringComparison compare, out ReadOnlySpan<char> capture) =>
-               text.AsSpan().Equals(x.Value.AsSpan(pos.Pos, text.Length), compare)
+               pos.Pos + text.Length < x.Length
+            && text.AsSpan().Equals(x.Value.AsSpan(pos.Pos, text.Length), compare)
             && pos.AdvanceTo(new Position { Pos = pos.Pos + text.Length }, x, out capture)
             || Fail(out capture);
 
@@ -278,7 +280,6 @@ namespace Recognizers
             return pos.AdvanceTo(i, x, out capture);
         }
 
-
         /// <summary>
         /// Recognise a character.
         /// </summary>
@@ -288,6 +289,7 @@ namespace Recognizers
         /// <returns></returns>
         public static bool Chars(this Input x, ref Position pos, params char[] c)
         {
+            // statically expand the array access up to 4 entries
             var i = pos;
             switch (c.Length)
             {
@@ -320,6 +322,7 @@ namespace Recognizers
         /// <returns></returns>
         public static bool Chars(this Input x, ref Position pos, out ReadOnlySpan<char> capture, params char[] c)
         {
+            // statically expand the array access up to 4 entries
             var i = pos;
             switch (c.Length)
             {
@@ -721,7 +724,7 @@ namespace Recognizers
             && pos.AdvanceTo(i);
 
         /// <summary>
-        /// Recognize an "attn" line.
+        /// Recognize an "Attention:" line.
         /// </summary>
         /// <param name="x"></param>
         /// <param name="pos"></param>
@@ -768,8 +771,10 @@ namespace Recognizers
         public static bool KeyValuePair(this ref Input x, char eq, ref Position pos, out ReadOnlySpan<char> key, out ReadOnlySpan<char> value) =>
                pos.Save(out var i)
             && x.CharsUntil(eq, ref i, out key)
+            && x.Char(eq, ref i)
             && x.Char('"', ref i)
             && x.CharsUntil('"', ref i, out value)
+            && x.Char('"', ref i)
             && pos.AdvanceTo(i)
             || Fail(out key) | Fail(out value);
 
@@ -783,8 +788,10 @@ namespace Recognizers
         public static bool KeyValuePair(this ref Input x, char eq, ref Position pos) =>
                pos.Save(out var i)
             && x.CharsUntil(eq, ref i)
+            && x.Char(eq, ref i)
             && x.Char('"', ref i)
             && x.CharsUntil('"', ref i)
+            && x.Char('"', ref i)
             && pos.AdvanceTo(i);
 
         /// <summary>
