@@ -768,7 +768,7 @@ namespace Recognizers
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static bool KeyValuePair(this ref Input x, char eq, ref Position pos, out ReadOnlySpan<char> key, out ReadOnlySpan<char> value) =>
+        public static bool KeyValuePair(this ref Input x, ref Position pos, out ReadOnlySpan<char> key, out ReadOnlySpan<char> value, char eq = '=') =>
                pos.Save(out var i)
             && x.CharsUntil(eq, ref i, out key)
             && x.Char(eq, ref i)
@@ -785,7 +785,7 @@ namespace Recognizers
         /// <param name="eq"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool KeyValuePair(this ref Input x, char eq, ref Position pos) =>
+        public static bool KeyValuePair(this ref Input x, ref Position pos, char eq = '=') =>
                pos.Save(out var i)
             && x.CharsUntil(eq, ref i)
             && x.Char(eq, ref i)
@@ -802,13 +802,13 @@ namespace Recognizers
         /// <param name="pos"></param>
         /// <param name="kv"></param>
         /// <returns></returns>
-        public static bool KeyValuePairs(this ref Input x, char eq, ref Position pos, out Dictionary<string, string> kv)
+        public static bool KeyValuePairs(this ref Input x, ref Position pos, out Dictionary<string, string> kv, char eq = '=')
         {
             var i = pos;
             kv = new Dictionary<string, string>();
             while (i.Pos < x.Length)
             {
-                if (x.KeyValuePair(eq, ref i, out var key, out var value))
+                if (x.KeyValuePair(ref i, out var key, out var value, eq))
                     kv.Add(key.ToString(), value.ToString());
                 else
                     break;

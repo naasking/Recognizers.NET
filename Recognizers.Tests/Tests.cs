@@ -71,13 +71,13 @@ Phone:   555 555 555 ")]
         {
             var source = new Input(input);
             var pos = new Position();
-            Assert.Equal(isValid, source.KeyValuePair(eq, ref pos));
+            Assert.Equal(isValid, source.KeyValuePair(ref pos, eq));
             Assert.Equal(isValid, source.End(pos));
 
             if (isValid)
             {
                 var pos2 = new Position();
-                Assert.True(source.KeyValuePair(eq, ref pos2, out var key, out var value));
+                Assert.True(source.KeyValuePair(ref pos2, out var key, out var value, eq));
                 Assert.Equal("key", key.ToString());
                 Assert.Equal("value", value.ToString());
             }
