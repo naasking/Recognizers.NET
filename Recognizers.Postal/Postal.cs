@@ -149,6 +149,65 @@ namespace Recognizers.Postal
             && x.Optional(x.WhiteSpaces(ref i))
             && (x.LiteralIgnoreCase("C\\O", ref i) || x.LiteralIgnoreCase("C/O", ref i))
             && pos.AdvanceTo(i);
+
+        /// <summary>
+        /// Recognize a city name.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public static bool City(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
+               pos.Save(out var i)
+            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Letters(ref i, out capture)
+            && pos.AdvanceTo(i)
+            || Recognizers.Fail(out capture);
+
+        /// <summary>
+        /// Recognize an input that matches a known country.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public static bool Country(this Input x, Dictionary<string, string> countries, out string country, ref Position pos) =>
+               pos.Save(out var i)
+            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Letters(ref i, out var word)
+            && countries.TryGetValue(word.ToString(), out country)
+            && pos.AdvanceTo(i)
+            || Recognizers.Fail(out country);
+
+        /// <summary>
+        /// Recognize a "state[,][ ]*province" input.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public static bool StateOrProvince(this Input x, Dictionary<string, string> provinces, out string province, ref Position pos) =>
+               pos.Save(out var i)
+            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Letters(ref i, out var word)
+            && provinces.TryGetValue(word.ToString(), out province)
+            && pos.AdvanceTo(i)
+            || Recognizers.Fail(out province);
+
+        public static bool CityProvinceCountry(this Input x, out ReadOnlySpan<char> city, Dictionary<string, string> provinces, out string province, Dictionary<string, string> countries, out string country, ref Position pos) =>
+               pos.Save(out var i)
+            && x.CityProvince(out city, provinces, out province, ref i)
+            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.Char(',', ref i))
+            && x.Country(countries, out country, ref i)
+            || (Recognizers.Fail(out city) | Recognizers.Fail(out province) | Recognizers.Fail(out country));
+
+        public static bool CityProvince(this Input x, out ReadOnlySpan<char> city, Dictionary<string, string> provinces, out string province, ref Position pos) =>
+               pos.Save(out var i)
+            && x.City(ref i, out city)
+            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.Char(',', ref i))
+            && x.StateOrProvince(provinces, out province, ref i)
+            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.Char(',', ref i))
+            || (Recognizers.Fail(out city) | Recognizers.Fail(out province));
         #endregion
 
         #region Extract lines that match the rules
@@ -158,15 +217,15 @@ namespace Recognizers.Postal
         /// <param name="lines"></param>
         /// <returns></returns>
         public static IEnumerable<Input> PhoneNos(this IEnumerable<Input> lines) =>
-            lines.Where(x => x.Begin(out var pos) &&
-                             x.Optional(x.WhiteSpaces(ref pos)) &&
-                             (x.LiteralIgnoreCase("Fax", ref pos) || x.LiteralIgnoreCase("Phone", ref pos)) &&
-                             x.Optional(x.WhiteSpaces(ref pos)) &&
-                             x.Optional(x.Chars(':', ref pos)) &&
-                             x.Optional(x.WhiteSpaces(ref pos)) &&
-                             x.PhoneNumber(ref pos) &&
-                             x.Optional(x.WhiteSpaces(ref pos)) &&
-                             x.End(pos));
+            lines.Where(x => x.Begin(out var pos)
+                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && (x.LiteralIgnoreCase("Fax", ref pos) || x.LiteralIgnoreCase("Phone", ref pos))
+                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && x.Optional(x.Chars(':', ref pos))
+                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && x.PhoneNumber(ref pos)
+                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && x.End(pos));
 
         /// <summary>
         /// Include only lines that match postal codes.
@@ -174,10 +233,55 @@ namespace Recognizers.Postal
         /// <param name="lines"></param>
         /// <returns></returns>
         public static IEnumerable<Input> PostalCodes(this IEnumerable<Input> lines) =>
-            lines.Where(x => x.Begin(out var pos) &&
-                             x.PostalOrZipCode(ref pos) &&
-                             x.Optional(x.WhiteSpaces(ref pos)) &&
-                             x.End(pos));
+            lines.Where(x => x.Begin(out var pos)
+                          && x.PostalOrZipCode(ref pos)
+                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && x.End(pos));
+
+        /// <summary>
+        /// Include only lines that match "city, province, country".
+        /// </summary>
+        /// <param name="lines"></param>
+        /// <returns></returns>
+        public static IEnumerable<Input> CitiesProvincesCountries(this IEnumerable<Input> lines, Dictionary<string, string> provinces, Dictionary<string, string> countries) =>
+            lines.Where(x => x.Begin(out var pos)
+                          && x.CityProvinceCountry(out var city, provinces, out var prov, countries, out var c, ref pos)
+                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && x.End(pos));
+
+        /// <summary>
+        /// Include only lines that match known provinces.
+        /// </summary>
+        /// <param name="lines"></param>
+        /// <returns></returns>
+        public static IEnumerable<Input> CitiesProvinces(this IEnumerable<Input> lines, Dictionary<string, string> provinces) =>
+            lines.Where(x => x.Begin(out var pos)
+                          && x.CityProvince(out var city, provinces, out var prov, ref pos)
+                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && x.End(pos));
+
+        /// <summary>
+        /// Include only lines that match known countries.
+        /// </summary>
+        /// <param name="lines"></param>
+        /// <returns></returns>
+        public static IEnumerable<Input> Countries(this IEnumerable<Input> lines, Dictionary<string, string> countries) =>
+            lines.Where(x => x.Begin(out var pos)
+                          && x.Country(countries, out var c, ref pos)
+                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && x.End(pos));
+
+        /// <summary>
+        /// Include only lines that match postal codes.
+        /// </summary>
+        /// <param name="lines"></param>
+        /// <returns></returns>
+        public static IEnumerable<Input> CareOf(this IEnumerable<Input> lines) =>
+            lines.Where(x => x.Begin(out var pos)
+                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && x.CareOf(ref pos)
+                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && x.End(pos));
 
         /// <summary>
         /// Include only lines that match "attn:" labels.
@@ -185,8 +289,8 @@ namespace Recognizers.Postal
         /// <param name="lines"></param>
         /// <returns></returns>
         public static IEnumerable<Input> AttentionLines(this IEnumerable<Input> lines) =>
-            lines.Where(x => x.Begin(out var pos) &&
-                             x.Attention(ref pos));
+            lines.Where(x => x.Begin(out var pos)
+                          && x.Attention(ref pos));
         #endregion
     }
 }
