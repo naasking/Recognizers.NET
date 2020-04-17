@@ -1,10 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Recognizers.Postal
 {
+    /// <summary>
+    /// Recognizers specific to mailing/postal addresses.
+    /// </summary>
     public static class Postal
     {
+        #region Core postal address recognizers
         /// <summary>
         /// Recognize a zip code.
         /// </summary>
@@ -120,5 +125,68 @@ namespace Recognizers.Postal
             || pos.Save(out i) && x.LiteralIgnoreCase("Att", ref i) && pos.AdvanceTo(i, x, out capture)
             || Recognizers.Fail(out capture);
 
+        /// <summary>
+        /// Recognize a c/o label.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public static bool CareOf(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
+               pos.Save(out var i)
+            && x.Optional(x.WhiteSpaces(ref i))
+            && (x.LiteralIgnoreCase("C\\O", ref i) || x.LiteralIgnoreCase("C/O", ref i))
+            && pos.AdvanceTo(i, x, out capture)
+            || Recognizers.Fail(out capture);
+
+        /// <summary>
+        /// Recognize a c/o label.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public static bool CareOf(this Input x, ref Position pos) =>
+               pos.Save(out var i)
+            && x.Optional(x.WhiteSpaces(ref i))
+            && (x.LiteralIgnoreCase("C\\O", ref i) || x.LiteralIgnoreCase("C/O", ref i))
+            && pos.AdvanceTo(i);
+        #endregion
+
+        #region Extract lines that match the rules
+        /// <summary>
+        /// Include only lines that match phone numbers.
+        /// </summary>
+        /// <param name="lines"></param>
+        /// <returns></returns>
+        public static IEnumerable<Input> PhoneNos(this IEnumerable<Input> lines) =>
+            lines.Where(x => x.Begin(out var pos) &&
+                             x.Optional(x.WhiteSpaces(ref pos)) &&
+                             (x.LiteralIgnoreCase("Fax", ref pos) || x.LiteralIgnoreCase("Phone", ref pos)) &&
+                             x.Optional(x.WhiteSpaces(ref pos)) &&
+                             x.Optional(x.Chars(':', ref pos)) &&
+                             x.Optional(x.WhiteSpaces(ref pos)) &&
+                             x.PhoneNumber(ref pos) &&
+                             x.Optional(x.WhiteSpaces(ref pos)) &&
+                             x.End(pos));
+
+        /// <summary>
+        /// Include only lines that match postal codes.
+        /// </summary>
+        /// <param name="lines"></param>
+        /// <returns></returns>
+        public static IEnumerable<Input> PostalCodes(this IEnumerable<Input> lines) =>
+            lines.Where(x => x.Begin(out var pos) &&
+                             x.PostalOrZipCode(ref pos) &&
+                             x.Optional(x.WhiteSpaces(ref pos)) &&
+                             x.End(pos));
+
+        /// <summary>
+        /// Include only lines that match "attn:" labels.
+        /// </summary>
+        /// <param name="lines"></param>
+        /// <returns></returns>
+        public static IEnumerable<Input> AttentionLines(this IEnumerable<Input> lines) =>
+            lines.Where(x => x.Begin(out var pos) &&
+                             x.Attention(ref pos));
+        #endregion
     }
 }
