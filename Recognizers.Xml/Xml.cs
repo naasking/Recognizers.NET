@@ -18,7 +18,7 @@ namespace Recognizers.Xml
         public Xml(string tag, Dictionary<string, string> attributes, IEnumerable<Xml> children)
         {
             Tag = tag;
-            Attributes = attributes ?? new Dictionary<string, string>();
+            Attributes = attributes ?? Enumerable.Empty<KeyValuePair<string, string>>();
             Children = children ?? Enumerable.Empty<Xml>();
         }
 
@@ -30,7 +30,7 @@ namespace Recognizers.Xml
         /// <summary>
         /// The XML element's attributes.
         /// </summary>
-        public Dictionary<string, string> Attributes { get; }
+        public IEnumerable<KeyValuePair<string, string>> Attributes { get; }
 
         /// <summary>
         /// The XML element's children.

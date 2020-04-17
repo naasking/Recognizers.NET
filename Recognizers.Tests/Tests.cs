@@ -184,8 +184,8 @@ Phone:   555 555 555 ")]
             Assert.True(source.End(pos));
             Assert.Equal("foo", xml.Tag);
             Assert.Single(xml.Attributes);
-            Assert.Equal("class", xml.Attributes.Keys.Single());
-            Assert.Equal("bar baz", xml.Attributes.Values.Single());
+            Assert.Equal("class", xml.Attributes.Single().Key);
+            Assert.Equal("bar baz", xml.Attributes.Single().Value);
 
             Assert.Equal(2, xml.Children.Count());
             var bar = xml.Children.First();
@@ -198,8 +198,8 @@ Phone:   555 555 555 ")]
             var bazNested = bar.Children.Single();
             Assert.Equal("baz", bazNested.Tag);
             Assert.Single(bazNested.Attributes);
-            Assert.Equal("style", bazNested.Attributes.Keys.Single());
-            Assert.Equal("some-foo", bazNested.Attributes.Values.Single());
+            Assert.Equal("style", bazNested.Attributes.Single().Key);
+            Assert.Equal("some-foo", bazNested.Attributes.Single().Value);
             Assert.Empty(bazNested.Children);
 
             Assert.Equal("baz", baz.Tag);
