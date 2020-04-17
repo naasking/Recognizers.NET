@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Recognizers.Xml;
+using Recognizers.Postal;
 
 namespace Recognizers.Tests
 {

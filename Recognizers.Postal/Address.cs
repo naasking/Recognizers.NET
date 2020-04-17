@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Recognizers
+namespace Recognizers.Postal
 {
     /// <summary>
     /// Recognize parts of a given address.

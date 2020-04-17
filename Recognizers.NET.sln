@@ -11,7 +11,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Recognizers.Bench", "Recogn
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Recognizers.BenchCore", "Recognizers.BenchCore\Recognizers.BenchCore.csproj", "{DDE6D0EA-31D5-4D07-BBF8-D603916B720F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Recognizers.Xml", "Recognizers.Xml\Recognizers.Xml.csproj", "{15225569-ACFA-4817-AC0F-7F65EC591D27}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Recognizers.Xml", "Recognizers.Xml\Recognizers.Xml.csproj", "{15225569-ACFA-4817-AC0F-7F65EC591D27}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Recognizers.Postal", "Recognizers.Postal\Recognizers.Postal.csproj", "{4CCB6078-0F09-471C-85D3-83AA8E17808C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{15225569-ACFA-4817-AC0F-7F65EC591D27}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15225569-ACFA-4817-AC0F-7F65EC591D27}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15225569-ACFA-4817-AC0F-7F65EC591D27}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CCB6078-0F09-471C-85D3-83AA8E17808C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CCB6078-0F09-471C-85D3-83AA8E17808C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CCB6078-0F09-471C-85D3-83AA8E17808C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CCB6078-0F09-471C-85D3-83AA8E17808C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
