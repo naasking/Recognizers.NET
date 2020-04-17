@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
+using Recognizers.Xml;
 
 namespace Recognizers.Tests
 {
@@ -122,6 +123,28 @@ Phone:   555 555 555 ")]
             var rx = new System.Text.RegularExpressions.Regex("[\x020]*[+]?[\x020]*[0-9]*[\x020]*([(][0-9]+[)])?[\x020]*[/]?([0-9-\x020])+");
             var match = rx.Match(input);
             Assert.Equal(isPhoneNo, match.Success && match.Length == input.Length);
+        }
+
+        [Theory]
+        [InlineData(false, 0, "")]
+        [InlineData(false, 0, "<foo>")]
+        [InlineData(false, 0, "</foo>")]
+        [InlineData(true, 0, "<?xml version=\"1.0\"?><foo />")]
+        [InlineData(true, 0, "<?xml version=\"1.0\"?><foo></foo>")]
+        [InlineData(true, 0, "<?xml version=\"1.0\"?>\r\n<foo>\r</foo>")]
+        [InlineData(true, 1, "<?xml version=\"1.0\"?>\r\n<foo> <bar /> </foo>")]
+        public static void Xml(bool isValid, int childCount, string input)
+        {
+            var source = new Input(input);
+            var pos = new Position();
+            Assert.Equal(isValid, source.Xml(ref pos, out var xml, out var xmlAttributes));
+            Assert.Equal(isValid, source.End(pos) && !string.IsNullOrEmpty(input));
+
+            if (isValid)
+            {
+                Assert.Equal("foo", xml.Tag);
+                Assert.Equal(childCount, xml.Children.Count());
+            }
         }
     }
 }
