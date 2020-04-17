@@ -54,7 +54,7 @@ Phone:   555 555 555 ")]
             var lines = input.Split('\n').Select(x => new Input(x));
             var phones = Address.PhoneNos(lines);
             Assert.Equal(phoneCount, phones.Count());
-         
+
             var attn = Address.AttentionLines(lines);
             Assert.Equal(attnCount, attn.Count());
 
@@ -118,7 +118,7 @@ Phone:   555 555 555 ")]
                 var parts = input.Split(new[] { ' ', '-', '(', ')', '+', '/' }, StringSplitOptions.RemoveEmptyEntries);
                 Assert.Equal(parts, digits);
             }
-            
+
             // compare to regex
             var rx = new System.Text.RegularExpressions.Regex("[\x020]*[+]?[\x020]*[0-9]*[\x020]*([(][0-9]+[)])?[\x020]*[/]?([0-9-\x020])+");
             var match = rx.Match(input);
@@ -129,6 +129,7 @@ Phone:   555 555 555 ")]
         [InlineData(false, 0, "")]
         [InlineData(false, 0, "<foo>")]
         [InlineData(false, 0, "</foo>")]
+        [InlineData(false, 0, "<?xml version=\"1.0\"?>< foo />")]
         [InlineData(true, 0, "<?xml version=\"1.0\"?><foo />")]
         [InlineData(true, 0, "<?xml version=\"1.0\"?><foo></foo>")]
         [InlineData(true, 0, "<?xml version=\"1.0\"?>\r\n<foo>\r</foo>")]
@@ -142,9 +143,31 @@ Phone:   555 555 555 ")]
 
             if (isValid)
             {
+                Assert.Single(xmlAttributes.Keys);
+                Assert.Equal("version", xmlAttributes.Keys.Single());
+                Assert.Equal("1.0", xmlAttributes.Values.Single());
                 Assert.Equal("foo", xml.Tag);
                 Assert.Equal(childCount, xml.Children.Count());
             }
+        }
+
+        [Theory]
+        [InlineData(1, 0, "<?xml version=\"1.0\"?><foo> <bar />\r\n</foo>")]
+        [InlineData(1, 0, "<?xml version=\"1.0\"?><foo> <bar></bar>\r\n</foo>")]
+        [InlineData(1, 1, "<?xml version=\"1.0\"?><foo> <bar>\t<baz /></bar>\r\n</foo>")]
+        [InlineData(2, 1, "<?xml version=\"1.0\"?><foo> <bar>\t<baz /></bar>\r\n<baz></baz></foo>")]
+        [InlineData(2, 2, "<?xml version=\"1.0\"?><foo> <bar>\t<baz /></bar>\r\n<baz><foo /></baz></foo>")]
+        public static void XmlNested(int childCount, int nestedCount, string input)
+        {
+            var source = new Input(input);
+            var pos = new Position();
+            Assert.True(source.Xml(ref pos, out var xml, out var xmlAttributes));
+            Assert.True(source.End(pos) && !string.IsNullOrEmpty(input));
+            Assert.Single(xmlAttributes.Keys);
+            Assert.Equal("version", xmlAttributes.Keys.Single());
+            Assert.Equal("1.0", xmlAttributes.Values.Single());
+            Assert.Equal(childCount, xml.Children.Count());
+            Assert.Equal(nestedCount, xml.Children.Sum(x => x.Children.Count()));
         }
     }
 }
