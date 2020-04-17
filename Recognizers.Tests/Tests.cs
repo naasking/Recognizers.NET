@@ -130,6 +130,10 @@ Phone:   555 555 555 ")]
         [InlineData(false, 0, "<foo>")]
         [InlineData(false, 0, "</foo>")]
         [InlineData(false, 0, "<?xml version=\"1.0\"?>< foo />")]
+        [InlineData(false, 0, "<?xml version=\"1.0\"?>foo />")]
+        [InlineData(false, 0, "<?xml version=\"1.0\"?><foo>")]
+        [InlineData(false, 0, "<?xml version=\"1.0\"?><foo/")]
+        [InlineData(false, 0, "<?xml version=\"1.0\"?><foo></foo bar=\"baz\">")]
         [InlineData(true, 0, "<?xml version=\"1.0\"?><foo />")]
         [InlineData(true, 0, "<?xml version=\"1.0\"?><foo></foo>")]
         [InlineData(true, 0, "<?xml version=\"1.0\"?>\r\n<foo>\r</foo>")]
@@ -168,6 +172,43 @@ Phone:   555 555 555 ")]
             Assert.Equal("1.0", xmlAttributes.Values.Single());
             Assert.Equal(childCount, xml.Children.Count());
             Assert.Equal(nestedCount, xml.Children.Sum(x => x.Children.Count()));
+        }
+
+        [Fact]
+        public static void XmlAttributes()
+        {
+            var input = "<?xml version=\"1.0\"?><foo class=\"bar baz\"> <bar>\t<baz style=\"some-foo\" /></bar>\r\n<baz><foo /></baz></foo>";
+            var source = new Input(input);
+            var pos = new Position();
+            Assert.True(source.Xml(ref pos, out var xml, out var xmlAttributes));
+            Assert.True(source.End(pos));
+            Assert.Equal("foo", xml.Tag);
+            Assert.Single(xml.Attributes);
+            Assert.Equal("class", xml.Attributes.Keys.Single());
+            Assert.Equal("bar baz", xml.Attributes.Values.Single());
+
+            Assert.Equal(2, xml.Children.Count());
+            var bar = xml.Children.First();
+            var baz = xml.Children.Last();
+            
+            Assert.Equal("bar", bar.Tag);
+            Assert.Single(bar.Children);
+            Assert.Empty(bar.Attributes);
+
+            var bazNested = bar.Children.Single();
+            Assert.Equal("baz", bazNested.Tag);
+            Assert.Single(bazNested.Attributes);
+            Assert.Equal("style", bazNested.Attributes.Keys.Single());
+            Assert.Equal("some-foo", bazNested.Attributes.Values.Single());
+            Assert.Empty(bazNested.Children);
+
+            Assert.Equal("baz", baz.Tag);
+            Assert.Empty(baz.Attributes);
+            Assert.Single(baz.Children);
+
+            var fooNested = baz.Children.Single();
+            Assert.Empty(fooNested.Attributes);
+            Assert.Empty(fooNested.Children);
         }
     }
 }

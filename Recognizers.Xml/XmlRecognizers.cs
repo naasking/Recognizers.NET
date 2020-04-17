@@ -51,10 +51,12 @@ namespace Recognizers.Xml
                         if (tag.Equals(closeTag, StringComparison.Ordinal))
                             break;
                         else
-                            throw new System.Xml.XmlException($"Found unmatched closing tag {closeTag.ToString()} at position {i.Pos}.");
+                            return Recognizers.Fail(out xml);
                     }
                     else if (x.XmlNode(ref i, out var xml1))
                         children.Add(xml1);
+                    else if (i.Pos >= x.Length)
+                        return Recognizers.Fail(out xml);
                 }
                 xml = new Xml(tag.ToString(), attributes, children);
             }
