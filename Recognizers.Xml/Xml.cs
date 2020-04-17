@@ -4,6 +4,16 @@ using System.Collections.Generic;
 
 namespace Recognizers.Xml
 {
+    ///// <summary>
+    ///// The type of the XML element.
+    ///// </summary>
+    //public enum XmlType { Leaf, Node }
+
+    //FIXME: should change to something like this:
+    //public abstract class XmlRoot { public IEnumerable<KeyValuePair<string, string>> Attributes { get; set; } }
+    //public class XmlNode : XmlRoot { public string Tag; public IEnumerable<XmlRoot> Children; }
+    //public class XmlContent : XmlRoot { public string Content; }
+
     /// <summary>
     /// A basic XML abstraction.
     /// </summary>
