@@ -1,0 +1,82 @@
+﻿<#@ template language="C#" hostspecific="true" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Net" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extensions=".cs" #>
+<# var countries = Countries(); #>
+<# var provinces = Provinces(); #>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace Recognizers.Postal
+{
+    /// <summary>Database of countries and states/territories/provinces.</summary>
+    public static partial class PostalData
+    {
+	    /// <summary>The map of territories/states/provinces</summary>
+	    public static readonly Dictionary<string, Dictionary<string, string>> Provinces = new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase)
+		{
+<# var country = ""; #>
+<# for (int i = 0; i < provinces.Length - 1; i += 3) { #>
+<#     if (countries.TryGetValue(provinces[i], out var c) && c != country) { #>
+<#		   country = c; #>
+<#         if (i > 3) { #>
+               }
+           },
+<#         } #>
+           { "<#=country#>", new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+		       {
+<#     } #>
+                   { "<#=provinces[i+1]#>", "<#=provinces[i+2]#>" },
+                   { "<#=provinces[i+2]#>", "<#=provinces[i+2]#>" },
+<# } #>
+               }
+			}
+		};
+
+	    /// <summary>The map of countries and country codes.</summary>
+	    public static readonly Dictionary<string, string> Countries = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+		{
+<# foreach (var x in countries) { #>
+           { "<#=x.Key#>", "<#=x.Value#>" },
+<# } #>
+        };
+    }
+}
+<#+
+string FetchCountries()
+{
+	using (var web = new WebClient())
+	{
+		return web.DownloadString(new Uri("http://country.io/names.json"));
+	}
+}
+Dictionary<string, string> Countries()
+{
+    var root = this.Host.ResolvePath(".");
+	var path = Path.Combine(root, "countries.json");
+	if (!File.Exists(path))
+		File.WriteAllText(path, FetchCountries());
+	var countries = File.ReadAllText(path)
+						.Split(new[] { '\r', '\n', ':', '"', '{', '}' }, StringSplitOptions.RemoveEmptyEntries);
+	var map = new Dictionary<string, string>();
+	for (int i = 0; i < countries.Length; i += 4)
+	{
+		map[countries[i]] = countries[i+2];
+		map[countries[i+2]] = countries[i+2];
+	}
+	return map;
+}
+string[] Provinces()
+{
+	//from: https://www.cbp.gov/document/guidance/international-stateprovince-codes
+	var provinces = File.ReadAllText(this.Host.ResolvePath("provinces.csv"))
+						.Split(new[] { '\r', '\n', ',' }, StringSplitOptions.RemoveEmptyEntries);
+	return provinces;
+}
+#>

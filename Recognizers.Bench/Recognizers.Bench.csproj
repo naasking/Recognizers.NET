@@ -271,6 +271,10 @@
       <Project>{2c3a4dca-fcf1-425d-b4c1-c77cc8413d9b}</Project>
       <Name>Recognizers.NET</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Recognizers.Postal\Recognizers.Postal.csproj">
+      <Project>{4ccb6078-0f09-471c-85d3-83aa8e17808c}</Project>
+      <Name>Recognizers.Postal</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

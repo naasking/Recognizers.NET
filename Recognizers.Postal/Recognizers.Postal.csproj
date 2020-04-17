@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,6 +10,25 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Recognizers.NET\Recognizers.NET.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="PostalData.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PostalData.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="PostalData.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PostalData.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>
