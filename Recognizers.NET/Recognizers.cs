@@ -9,11 +9,12 @@ namespace Recognizers
     /// </summary>
     public static class Recognizers
     {
-        #region Internal methods
+        #region Core recognizers
+
         /// <summary>
         /// Return false after initializing the captured variable.
         /// </summary>
-        static bool Fail(out ReadOnlySpan<char> capture)
+        public static bool Fail(out ReadOnlySpan<char> capture)
         {
             capture = default(ReadOnlySpan<char>);
             return false;
@@ -22,14 +23,12 @@ namespace Recognizers
         /// <summary>
         /// Return false after initializing the captured variable.
         /// </summary>
-        static bool Fail(out List<string> capture)
+        public static bool Fail<T>(out T capture)
         {
-            capture = default(List<string>);
+            capture = default(T);
             return false;
         }
-        #endregion
 
-        #region Core recognizers
         /// <summary>
         /// Recognition proceeds even without a match.
         /// </summary>
@@ -180,7 +179,7 @@ namespace Recognizers
             var i = pos;
             while (i.Pos < x.Length && char.IsWhiteSpace(x[i]))
                 ++i.Pos;
-            return pos.AdvanceTo(i);
+            return pos.AdvanceTo(i); //FIXME: semantics are + but what if we want * semantics?
         }
 
         /// <summary>
@@ -277,6 +276,72 @@ namespace Recognizers
             var i = pos;
             while (i.Pos < x.Length && x[i] != c)
                 ++i.Pos;
+            return pos.AdvanceTo(i, x, out capture);
+        }
+
+        /// <summary>
+        /// Consume all characters until the given character is seen.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="c"></param>
+        /// <param name="pos"></param>
+        /// <param name="capture"></param>
+        /// <returns></returns>
+        public static bool CharsUntil(this Input x, ref Position pos, params char[] c)
+        {
+            var i = pos;
+            switch (c.Length)
+            {
+                case 0:
+                    return false;
+                case 1:
+                    return x.CharsUntil(c[0], ref pos);
+                case 2:
+                    while (i.Pos < x.Length && x[i] != c[0] && x[i] != c[1])
+                        ++i.Pos;
+                    break;
+                case 3:
+                    while (i.Pos < x.Length && x[i] != c[0] && x[i] != c[1] && x[i] != c[2])
+                        ++i.Pos;
+                    break;
+                default:
+                    while (i.Pos < x.Length && Array.IndexOf(c, x[i]) < 0)
+                        ++i.Pos;
+                    break;
+            }
+            return pos.AdvanceTo(i);
+        }
+
+        /// <summary>
+        /// Consume all characters until the given character is seen.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="c"></param>
+        /// <param name="pos"></param>
+        /// <param name="capture"></param>
+        /// <returns></returns>
+        public static bool CharsUntil(this Input x, ref Position pos, out ReadOnlySpan<char> capture, params char[] c)
+        {
+            var i = pos;
+            switch (c.Length)
+            {
+                case 0:
+                    return Fail(out capture);
+                case 1:
+                    return x.CharsUntil(c[0], ref pos, out capture);
+                case 2:
+                    while (i.Pos < x.Length && x[i] != c[0] && x[i] != c[1])
+                        ++i.Pos;
+                    break;
+                case 3:
+                    while (i.Pos < x.Length && x[i] != c[0] && x[i] != c[1] && x[i] != c[2])
+                        ++i.Pos;
+                    break;
+                default:
+                    while (i.Pos < x.Length && Array.IndexOf(c, x[i]) < 0)
+                        ++i.Pos;
+                    break;
+            }
             return pos.AdvanceTo(i, x, out capture);
         }
 
@@ -671,10 +736,10 @@ namespace Recognizers
         public static bool PostalCode(this Input x, ref Position pos)
         {
             var i = pos;
-            if (!x.LettersOrDigits(ref i) || i.Delta != 3)
+            if (!x.LettersOrDigits(ref i, out var part1) || part1.Length != 3)
                 return false;
             x.Optional(x.WhiteSpaces(ref i));
-            return x.LettersOrDigits(ref i) && i.Delta == 3 && pos.AdvanceTo(i);
+            return x.LettersOrDigits(ref i, out var part2) && part2.Length == 3 && pos.AdvanceTo(i);
         }
 
         /// <summary>
@@ -686,10 +751,10 @@ namespace Recognizers
         public static bool PostalCode(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
-            if (!x.LettersOrDigits(ref i) || i.Delta != 3)
+            if (!x.LettersOrDigits(ref i, out var part1) || part1.Length != 3)
                 return Fail(out capture);
             x.Optional(x.WhiteSpaces(ref i));
-            return x.LettersOrDigits(ref i) && i.Delta == 3 && pos.AdvanceTo(i, x, out capture)
+            return x.LettersOrDigits(ref i, out var part2) && part2.Length == 3 && pos.AdvanceTo(i, x, out capture)
                 || Fail(out capture);
         }
 
@@ -768,8 +833,10 @@ namespace Recognizers
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static bool KeyValuePair(this ref Input x, ref Position pos, out ReadOnlySpan<char> key, out ReadOnlySpan<char> value, char eq = '=') =>
+        public static bool KeyValuePair(this Input x, ref Position pos, out ReadOnlySpan<char> key, out ReadOnlySpan<char> value, char eq = '=') =>
                pos.Save(out var i)
+            && x.LetterOrDigit(ref i) // ensure starts with letter or digit
+            && pos.Save(out i)        // backtrack one and resume
             && x.CharsUntil(eq, ref i, out key)
             && x.Char(eq, ref i)
             && x.Char('"', ref i)
@@ -785,7 +852,7 @@ namespace Recognizers
         /// <param name="eq"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool KeyValuePair(this ref Input x, ref Position pos, char eq = '=') =>
+        public static bool KeyValuePair(this Input x, ref Position pos, char eq = '=') =>
                pos.Save(out var i)
             && x.CharsUntil(eq, ref i)
             && x.Char(eq, ref i)
@@ -802,13 +869,13 @@ namespace Recognizers
         /// <param name="pos"></param>
         /// <param name="kv"></param>
         /// <returns></returns>
-        public static bool KeyValuePairs(this ref Input x, ref Position pos, out Dictionary<string, string> kv, char eq = '=')
+        public static bool KeyValuePairs(this Input x, ref Position pos, out Dictionary<string, string> kv, char eq = '=')
         {
             var i = pos;
             kv = new Dictionary<string, string>();
             while (i.Pos < x.Length)
             {
-                if (x.KeyValuePair(ref i, out var key, out var value, eq))
+                if (x.Optional(x.WhiteSpaces(ref i)) && x.KeyValuePair(ref i, out var key, out var value, eq))
                     kv.Add(key.ToString(), value.ToString());
                 else
                     break;

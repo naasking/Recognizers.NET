@@ -50,7 +50,7 @@ namespace Recognizers
         /// <returns></returns>
         public bool Begin(out Position pos)
         {
-            pos = new Position { Pos = 0, Delta = 0 };
+            pos = new Position { Pos = 0, };
             return true;
         }
 
@@ -69,7 +69,6 @@ namespace Recognizers
     public ref struct Position
     {
         public int Pos;
-        public int Delta;
 
         /// <summary>
         /// Start processing a rule at the input's start.
@@ -92,7 +91,7 @@ namespace Recognizers
         {
             if (Pos == newPosition.Pos)
                 return false;
-            Delta = Pos - newPosition.Pos;
+            //Delta = newPosition.Pos - Pos;
             Pos = newPosition.Pos;
             return true;
         }
@@ -112,8 +111,8 @@ namespace Recognizers
             }
             else
             {
-                Delta = newPosition.Pos - Pos;
-                capture = input.Value.AsSpan(Pos, Delta);
+                //Delta = newPosition.Pos - Pos;
+                capture = input.Value.AsSpan(Pos, newPosition.Pos - Pos);
                 Pos = newPosition.Pos;
                 return true;
             }
