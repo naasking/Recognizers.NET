@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 using BenchmarkDotNet;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Attributes;
@@ -32,6 +33,7 @@ namespace Recognizers.Bench
         };
         static Regex rxi = new Regex(regex, System.Text.RegularExpressions.RegexOptions.None);
         static Regex rxc = new Regex(regex, System.Text.RegularExpressions.RegexOptions.Compiled);
+        static Input[] inputs = phonenos.Select(x => new Input(x)).ToArray();
 
         [Benchmark]
         public void BenchRecognizers()
@@ -39,8 +41,7 @@ namespace Recognizers.Bench
             for (int i = 0; i < phonenos.Length; ++i)
             {
                 var pos = new Position();
-                var input = new Input(phonenos[i]);
-                input.PhoneNumber(ref pos);
+                inputs[i].PhoneNumber(ref pos);
             }
         }
 
