@@ -52,16 +52,22 @@ Fax:   (555) 555-555
 Phone:   555 555 555 ")]
         public static void CheckData(int phoneCount, int attnCount, string input)
         {
-            var lines = input.Split('\n').Select(x => new Input(x));
-            var phones = Address.PhoneNos(lines);
+            var lines = input.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(x => new Input(x));
+            var phones = lines.PhoneNos().Select(x => new string(x.Value));
             Assert.Equal(phoneCount, phones.Count());
 
-            var attn = Address.AttentionLines(lines);
+            var attn = lines.AttentionLines().Select(x => new string(x.Value));
             Assert.Equal(attnCount, attn.Count());
 
-            var code = Address.PostalCodes(lines);
+            var code = lines.PostalCodes().Select(x => new string(x.Value));
             Assert.Single(code);
-            Assert.Equal("55555\r", code.Single().Value);
+            Assert.Equal("55555", code.Single());
+
+            var addr = @"Some address somewhere
+3000 Some street
+Englewood, CO";
+            var filtered = lines.Select(x => new string(x.Value)).Except(phones).Except(attn).Except(code);
+            Assert.Equal(addr, string.Join(Environment.NewLine, filtered));
         }
 
         [Theory]
