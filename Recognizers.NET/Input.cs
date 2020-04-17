@@ -138,5 +138,10 @@ namespace Recognizers
             Pos = Pos + 1;
             return true;
         }
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        public override string ToString() => Pos.ToString();
     }
 }
