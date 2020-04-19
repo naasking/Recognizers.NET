@@ -91,7 +91,6 @@ namespace Recognizers
         {
             if (Pos == newPosition.Pos)
                 return false;
-            //Delta = newPosition.Pos - Pos;
             Pos = newPosition.Pos;
             return true;
         }
@@ -111,7 +110,6 @@ namespace Recognizers
             }
             else
             {
-                //Delta = newPosition.Pos - Pos;
                 capture = input.Value.AsSpan(Pos, newPosition.Pos - Pos);
                 Pos = newPosition.Pos;
                 return true;
