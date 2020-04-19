@@ -21,7 +21,7 @@ Some simple "atom" recognizers provided by the library, ie. recognizers for basi
         return pos.AdvanceTo(i);
     }
 
-    // recognize whitespace
+    // recognize many whitespace characters
     public static bool WhiteSpaces(ref this Input x, ref Position pos)
     {
         var i = pos;
@@ -42,7 +42,7 @@ matches:
 
     // matches one character in the range [A-z] or [0-9]
     public static bool LetterOrDigit(ref this Input x, ref Position pos) =>
-        (Letter(ref x, ref pos) || Digit(ref x, ref pos)) && pos.Advance();
+        Letter(ref x, ref pos) || Digit(ref x, ref pos);
 
 Save/AdvanceTo perform the backtracking that's needed in case the rule fails.
 Recognizer combinations can get quite sophisticated. Here's one for phone numbers:

@@ -525,7 +525,9 @@ namespace Recognizers
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool DelimitedDigits(this Input x, ref Position pos, params char[] delimiters)
         {
-            //FIXME: this is probably not correct, it needs only a single delimiter per digit? May need a loop "state" variable to track this.
+            //FIXME: this is probably not correct, it needs only a single delimiter per digit?
+            //May need a loop "state" variable to track that we've seen a delimiter and so this
+            //should be followed by a digit?
             var i = pos;
             while (i.Pos < x.Length)
             {
