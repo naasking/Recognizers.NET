@@ -1,8 +1,14 @@
 # Recognizers.NET
 
-This is a simple combinator library for recognizing strings using only imperative constructs,
-no allocation, and higher-order functions or other fancy features. This makes the API suitable
-for use in imperative languages, like C.
+This is a simple combinator library for recognizing strings using only imperative constructs. It
+requires:
+
+ 1. no allocation
+ 2. no higher-order functions
+ 3. no virtual dispatching
+ 
+This makes the library incredibly efficient, and the API is also suitable
+for use in imperative languages, like C, which lack the above features.
 
 # Atoms
 
@@ -42,7 +48,7 @@ matches:
 
     // matches one character in the range [A-z] or [0-9]
     public static bool LetterOrDigit(ref this Input x, ref Position pos) =>
-        Letter(ref x, ref pos) || Digit(ref x, ref pos);
+        x.Letter(ref pos) || x.Digit(ref pos);
 
 Save/AdvanceTo perform the backtracking that's needed in case the rule fails.
 Recognizer combinations can get quite sophisticated. Here's one for phone numbers:
@@ -60,6 +66,9 @@ Recognizer combinations can get quite sophisticated. Here's one for phone number
         && x.Optional(x.WhiteSpaces(ref i))
         && x.DelimitedDigits(ref i, ' ', '-')
         && pos.AdvanceTo(i);
+
+You can see that this is essentially a specification of what a phone number should
+look like, and it's executable to recognize and extract phone numbers!
 
 By convention, methods in plural form are greedy and will consume as many matching
 characters as possible, where singular form matches only a single instance.
