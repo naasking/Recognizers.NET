@@ -4,8 +4,10 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <# var ops = new[] {
-    "Letter", "Digit", "WhiteSpace", "Symbol", "Separator", "Surrogate", "Punctuation",
-    "LetterOrDigit", "Lower", "Upper", "LowSurrogate", "HighSurrogate", "Control"
+    ("Letter", ""), ("Digit", ""), ("WhiteSpace", ""),
+    ("Symbol", ""), ("Separator", ""), ("Surrogate", ""),
+    ("Punctuation", ""), ("LetterOrDigit", "LettersOrDigits"), ("Lower", ""),
+    ("Upper", ""), ("LowSurrogate", ""), ("HighSurrogate", ""), ("Control", "")
 }; #>
 using System;
 using System.Linq;
@@ -16,7 +18,7 @@ namespace Recognizers
 {
     public static partial class Recognizers
     {
-<#  foreach (var x in ops) { #>
+<#  foreach (var (x, plural) in ops) { #>
 
         /// <summary>
         /// Recognize a <#=x#>.
@@ -44,7 +46,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool While<#=x#>(this Input x, ref Position pos)
+        public static bool <#=string.IsNullOrEmpty(plural) ? x + 's' : plural#>(this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.Is<#=x#>(x[i]))
@@ -58,7 +60,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool While<#=x#>(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        public static bool <#=string.IsNullOrEmpty(plural) ? x + 's' : plural#>(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
             while (i.Pos < x.Length && char.Is<#=x#>(x[i]))

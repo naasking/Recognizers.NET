@@ -185,7 +185,7 @@ namespace Recognizers
         /// <param name="c">The character to accept.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileChar(this Input x, char c, ref Position pos)
+        public static bool Chars(this Input x, char c, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && x[i] == c)
@@ -200,7 +200,7 @@ namespace Recognizers
         /// <param name="c">The character to accept.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileChar(this Input x, char c, ref Position pos, out ReadOnlySpan<char> capture)
+        public static bool Chars(this Input x, char c, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
             while (i.Pos < x.Length && x[i] == c)
@@ -215,7 +215,7 @@ namespace Recognizers
         /// <param name="c">The characters to accept.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileChar(this Input x, ref Position pos, params char[] c)
+        public static bool Chars(this Input x, ref Position pos, params char[] c)
         {
             // statically expand the array access up to 4 entries
             var i = pos;
@@ -224,7 +224,7 @@ namespace Recognizers
                 case 0:
                     return false;
                 case 1:
-                    return x.WhileChar(c[0], ref pos);
+                    return x.Chars(c[0], ref pos);
                 case 2:
                     while (i.Pos < x.Length && (x[i] == c[0] || x[i] == c[1]))
                         ++i.Pos;
@@ -248,7 +248,7 @@ namespace Recognizers
         /// <param name="c">The characters to accept.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileChar(this Input x, ref Position pos, out ReadOnlySpan<char> capture, params char[] c)
+        public static bool Chars(this Input x, ref Position pos, out ReadOnlySpan<char> capture, params char[] c)
         {
             // statically expand the array access up to 4 entries
             var i = pos;
@@ -257,7 +257,7 @@ namespace Recognizers
                 case 0:
                     return Fail(out capture);
                 case 1:
-                    return x.WhileChar(c[0], ref pos, out capture);
+                    return x.Chars(c[0], ref pos, out capture);
                 case 2:
                     while (i.Pos < x.Length && (x[i] == c[0] || x[i] == c[1]))
                         ++i.Pos;
@@ -454,15 +454,15 @@ namespace Recognizers
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool PhoneNumber(this Input x, ref Position pos) =>
                pos.Save(out var i)
-            && x.Optional(x.WhileWhiteSpace(ref i))
+            && x.Optional(x.WhiteSpaces(ref i))
             && x.Optional(x.Char('+', ref i))
-            && x.Optional(x.WhileWhiteSpace(ref i))
-            && x.Optional(x.WhileDigit(ref i))
-            && x.Optional(x.WhileWhiteSpace(ref i))
+            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.Digits(ref i))
+            && x.Optional(x.WhiteSpaces(ref i))
             && x.Optional(x.BracketedDigits(ref i))
-            && x.Optional(x.WhileWhiteSpace(ref i))
+            && x.Optional(x.WhiteSpaces(ref i))
             && x.Optional(x.Char('/', ref i))
-            && x.Optional(x.WhileWhiteSpace(ref i))
+            && x.Optional(x.WhiteSpaces(ref i))
             && x.DelimitedDigits(ref i, ' ', '-')
             && pos.AdvanceTo(i);
 
@@ -474,15 +474,15 @@ namespace Recognizers
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool PhoneNumber(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
                pos.Save(out var i)
-            && x.Optional(x.WhileWhiteSpace(ref i))
+            && x.Optional(x.WhiteSpaces(ref i))
             && x.Optional(x.Char('+', ref i))
-            && x.Optional(x.WhileWhiteSpace(ref i))
-            && x.Optional(x.WhileDigit(ref i))
-            && x.Optional(x.WhileWhiteSpace(ref i))
+            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.Digits(ref i))
+            && x.Optional(x.WhiteSpaces(ref i))
             && x.Optional(x.BracketedDigits(ref i))
-            && x.Optional(x.WhileWhiteSpace(ref i))
+            && x.Optional(x.WhiteSpaces(ref i))
             && x.Optional(x.Char('/', ref i))
-            && x.Optional(x.WhileWhiteSpace(ref i))
+            && x.Optional(x.WhiteSpaces(ref i))
             && x.DelimitedDigits(ref i, ' ', '-')
             && pos.AdvanceTo(i, x, out capture)
             || Fail(out capture);
@@ -495,15 +495,15 @@ namespace Recognizers
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool PhoneNumber(this Input x, ref Position pos, out List<string> capture) =>
                pos.Save(out var i)
-            && x.Optional(x.WhileWhiteSpace(ref i))
+            && x.Optional(x.WhiteSpaces(ref i))
             && x.Optional(x.Char('+', ref i))
-            && x.Optional(x.WhileWhiteSpace(ref i))
-            && x.Optional(x.WhileDigit(ref i, out var d1))
-            && x.Optional(x.WhileWhiteSpace(ref i))
+            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.Digits(ref i, out var d1))
+            && x.Optional(x.WhiteSpaces(ref i))
             && x.Optional(x.BracketedDigits(ref i, out var d2))
-            && x.Optional(x.WhileWhiteSpace(ref i))
+            && x.Optional(x.WhiteSpaces(ref i))
             && x.Optional(x.Char('/', ref i))
-            && x.Optional(x.WhileWhiteSpace(ref i))
+            && x.Optional(x.WhiteSpaces(ref i))
             && x.DelimitedDigits(ref i, out capture, ' ', '-')
             && (d2.Length == 0 || capture.Push(d2))
             && (d1.Length == 0 || capture.Push(d1))
@@ -529,7 +529,7 @@ namespace Recognizers
             var i = pos;
             while (i.Pos < x.Length)
             {
-                if (!x.WhileDigit(ref i) && !x.Char(ref i, delimiters))
+                if (!x.Digits(ref i) && !x.Char(ref i, delimiters))
                     break;
             }
             return pos.AdvanceTo(i);
@@ -548,7 +548,7 @@ namespace Recognizers
             capture = null;
             while (i.Pos < x.Length)
             {
-                if (x.WhileDigit(ref i, out var data))
+                if (x.Digits(ref i, out var data))
                     (capture ?? (capture = new List<string>())).Add(data.ToString());
                 else if (!x.Char(ref i, out data, delimiters))
                     break;
@@ -567,7 +567,7 @@ namespace Recognizers
             var i = pos;
             while (i.Pos < x.Length)
             {
-                if (!x.WhileDigit(ref i) && !x.Char(delimiter, ref i))
+                if (!x.Digits(ref i) && !x.Char(delimiter, ref i))
                     break;
             }
             return pos.AdvanceTo(i);
@@ -584,7 +584,7 @@ namespace Recognizers
             var i = pos;
             while (i.Pos < x.Length)
             {
-                if (!x.WhileDigit(ref i) && !x.Char(delimiter, ref i))
+                if (!x.Digits(ref i) && !x.Char(delimiter, ref i))
                     break;
             }
             return pos.AdvanceTo(i, x, out capture);
@@ -603,7 +603,7 @@ namespace Recognizers
             while (i.Pos < x.Length)
             {
                 var data = default(ReadOnlySpan<char>);
-                if (x.WhileDigit(ref i, out data) || x.WhileChar(delimiter, ref i, out data))
+                if (x.Digits(ref i, out data) || x.Char(delimiter, ref i, out data))
                     (capture ?? (capture = new List<string>())).Add(data.ToString());
                 else
                     break;
@@ -618,7 +618,7 @@ namespace Recognizers
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool BracketedDigits(this Input x, ref Position pos) =>
-            pos.Save(out var i) && x.Char('(', ref i) && x.WhileDigit(ref i) && x.Char(')', ref i) && pos.AdvanceTo(i);
+            pos.Save(out var i) && x.Char('(', ref i) && x.Digits(ref i) && x.Char(')', ref i) && pos.AdvanceTo(i);
 
         /// <summary>
         /// Digits surrounded by brackets.
@@ -627,7 +627,7 @@ namespace Recognizers
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool BracketedDigits(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-               pos.Save(out var i) && x.Char('(', ref i) && x.WhileDigit(ref i, out capture) && x.Char(')', ref i) && pos.AdvanceTo(i)
+               pos.Save(out var i) && x.Char('(', ref i) && x.Digits(ref i, out capture) && x.Char(')', ref i) && pos.AdvanceTo(i)
             || Fail(out capture);
 
         /// <summary>
@@ -679,6 +679,8 @@ namespace Recognizers
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool KeyValuePair(this Input x, ref Position pos, char eq = '=') =>
                pos.Save(out var i)
+            && x.LetterOrDigit(ref i) // ensure starts with letter or digit
+            && pos.Save(out i)        // backtrack one and resume
             && x.UntilChar(eq, ref i)
             && x.Char(eq, ref i)
             && x.Char('"', ref i)
@@ -700,7 +702,7 @@ namespace Recognizers
             kv = new Dictionary<string, string>();
             while (i.Pos < x.Length)
             {
-                if (x.Optional(x.WhileWhiteSpace(ref i)) && x.KeyValuePair(ref i, out var key, out var value, eq))
+                if (x.Optional(x.WhiteSpaces(ref i)) && x.KeyValuePair(ref i, out var key, out var value, eq))
                     kv.Add(key.ToString(), value.ToString());
                 else
                     break;

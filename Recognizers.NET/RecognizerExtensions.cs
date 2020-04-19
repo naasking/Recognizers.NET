@@ -34,7 +34,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileLetter(this Input x, ref Position pos)
+        public static bool Letters(this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsLetter(x[i]))
@@ -48,7 +48,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileLetter(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        public static bool Letters(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsLetter(x[i]))
@@ -110,7 +110,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileDigit(this Input x, ref Position pos)
+        public static bool Digits(this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsDigit(x[i]))
@@ -124,7 +124,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileDigit(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        public static bool Digits(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsDigit(x[i]))
@@ -186,7 +186,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileWhiteSpace(this Input x, ref Position pos)
+        public static bool WhiteSpaces(this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsWhiteSpace(x[i]))
@@ -200,7 +200,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileWhiteSpace(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        public static bool WhiteSpaces(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsWhiteSpace(x[i]))
@@ -262,7 +262,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileSymbol(this Input x, ref Position pos)
+        public static bool Symbols(this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsSymbol(x[i]))
@@ -276,7 +276,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileSymbol(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        public static bool Symbols(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsSymbol(x[i]))
@@ -338,7 +338,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileSeparator(this Input x, ref Position pos)
+        public static bool Separators(this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsSeparator(x[i]))
@@ -352,7 +352,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileSeparator(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        public static bool Separators(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsSeparator(x[i]))
@@ -414,7 +414,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileSurrogate(this Input x, ref Position pos)
+        public static bool Surrogates(this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsSurrogate(x[i]))
@@ -428,7 +428,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileSurrogate(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        public static bool Surrogates(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsSurrogate(x[i]))
@@ -490,7 +490,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhilePunctuation(this Input x, ref Position pos)
+        public static bool Punctuations(this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsPunctuation(x[i]))
@@ -504,7 +504,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhilePunctuation(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        public static bool Punctuations(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsPunctuation(x[i]))
@@ -566,7 +566,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileLetterOrDigit(this Input x, ref Position pos)
+        public static bool LettersOrDigits(this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsLetterOrDigit(x[i]))
@@ -580,7 +580,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileLetterOrDigit(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        public static bool LettersOrDigits(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsLetterOrDigit(x[i]))
@@ -642,7 +642,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileLower(this Input x, ref Position pos)
+        public static bool Lowers(this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsLower(x[i]))
@@ -656,7 +656,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileLower(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        public static bool Lowers(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsLower(x[i]))
@@ -718,7 +718,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileUpper(this Input x, ref Position pos)
+        public static bool Uppers(this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsUpper(x[i]))
@@ -732,7 +732,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileUpper(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        public static bool Uppers(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsUpper(x[i]))
@@ -794,7 +794,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileLowSurrogate(this Input x, ref Position pos)
+        public static bool LowSurrogates(this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsLowSurrogate(x[i]))
@@ -808,7 +808,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileLowSurrogate(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        public static bool LowSurrogates(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsLowSurrogate(x[i]))
@@ -870,7 +870,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileHighSurrogate(this Input x, ref Position pos)
+        public static bool HighSurrogates(this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsHighSurrogate(x[i]))
@@ -884,7 +884,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileHighSurrogate(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        public static bool HighSurrogates(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsHighSurrogate(x[i]))
@@ -946,7 +946,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileControl(this Input x, ref Position pos)
+        public static bool Controls(this Input x, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsControl(x[i]))
@@ -960,7 +960,7 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
-        public static bool WhileControl(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        public static bool Controls(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsControl(x[i]))
