@@ -377,7 +377,7 @@ namespace Recognizers
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool SurrogatePair(this Input x, ref Position pos) =>
-            pos.Pos < x.Length && pos.Save(out var i) && x.HighSurrogate(ref i) && x.LowSurrogate(ref i) && pos.AdvanceTo(i);
+            pos.Save(out var i) && x.HighSurrogate(ref i) && x.LowSurrogate(ref i) && pos.AdvanceTo(i);
             
         /// <summary>
         /// Recognize high surrogates.
@@ -386,7 +386,7 @@ namespace Recognizers
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool SurrogatePair(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-               pos.Pos < x.Length && pos.Save(out var i) && x.HighSurrogate(ref i) && x.LowSurrogate(ref i) && pos.AdvanceTo(i, x, out capture)
+               pos.Save(out var i) && x.HighSurrogate(ref i) && x.LowSurrogate(ref i) && pos.AdvanceTo(i, x, out capture)
             || Fail(out capture);
 
         /// <summary>
@@ -413,7 +413,34 @@ namespace Recognizers
         {
             var i = pos;
             while (i.Pos < x.Length && char.IsHighSurrogate(x[i]) && i.Advance() && char.IsLowSurrogate(x[i]))
-                    ++i.Pos;
+                ++i.Pos;
+            return pos.AdvanceTo(i, x, out capture);
+        }
+        /// <summary>
+        /// Accept all chars up to a surrogate pair.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool UntilSurrogatePair(this Input x, ref Position pos)
+        {
+            var i = pos;
+            while (i.Pos < x.Length && !(char.IsHighSurrogate(x[i]) && i.Advance() && char.IsLowSurrogate(x[i])))
+                ++i.Pos;
+            return pos.AdvanceTo(i);
+        }
+
+        /// <summary>
+        /// Accept all chars up to a surrogate pair.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool UntilSurrogatePair(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        {
+            var i = pos;
+            while (i.Pos < x.Length && !(char.IsHighSurrogate(x[i]) && i.Advance() && char.IsLowSurrogate(x[i])))
+                ++i.Pos;
             return pos.AdvanceTo(i, x, out capture);
         }
         #endregion
