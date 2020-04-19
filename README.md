@@ -38,7 +38,7 @@ matches:
 
     // recognize strings like "(1234)"
     public static bool BracketedDigits(this ref Input x, ref Position pos) =>
-        pos.Save(out var i) && x.Chars('(', ref i) && x.Digits(ref i) && x.Chars(')', ref i) && pos.AdvanceTo(i);
+        pos.Save(out var i) && x.Char('(', ref i) && x.Digits(ref i) && x.Char(')', ref i) && pos.AdvanceTo(i);
 
     // matches one character in the range [A-z] or [0-9]
     public static bool LetterOrDigit(ref this Input x, ref Position pos) =>
@@ -64,10 +64,10 @@ Recognizer combinations can get quite sophisticated. Here's one for phone number
 By convention, methods in plural form are greedy and will consume as many matching
 characters as possible, where singular form matches only a single instance.
 
-I'm not sure if this has ever been done before, but it's kind of neat that you can
+I'm not sure if this API has ever been done before, but it's kind of neat that you can
 almost get to parser combinators without any dynamic allocation or higher-order
-functions. It only requires a little discipline in some cases, particularly around
-recursive combinators.
+functions. It only requires a little discipline and repetition in some cases,
+particularly around recursive combinators.
 
 Finally, this API isn't just suitable for strings, but can be written to operate
 on bits, bytes or tokens. This could make for some easy to read, but fast
