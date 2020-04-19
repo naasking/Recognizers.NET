@@ -16,11 +16,11 @@ namespace Recognizers.Xml
 
         public static bool XmlOpen(this Input x, ref Position pos, out ReadOnlySpan<char> tag, out bool selfClose, out Dictionary<string, string> attributes) =>
                pos.Save(out var i)
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && x.Char('<', ref i)
-            && x.CharsUntil(ref i, out tag, ' ', '/', '>')
+            && x.UntilChar(ref i, out tag, ' ', '/', '>')
             && x.Optional(x.KeyValuePairs(ref i, out attributes))
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && x.Optional(x.Char('/', ref i, out var closed))
             && x.Char('>', ref i)
             && pos.AdvanceTo(i)
@@ -29,10 +29,10 @@ namespace Recognizers.Xml
 
         public static bool XmlClose(this Input x, ref Position pos, out ReadOnlySpan<char> tag) =>
                pos.Save(out var i)
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && x.Char('<', ref i)
             && x.Char('/', ref i)
-            && x.CharsUntil('>', ref i, out tag)
+            && x.UntilChar('>', ref i, out tag)
             && x.Char('>', ref i)
             && pos.AdvanceTo(i)
             || Recognizers.Fail(out tag);
@@ -62,7 +62,7 @@ namespace Recognizers.Xml
             }
             else
             {
-                xml = default(Xml);
+                xml = default;
             }
             return pos.AdvanceTo(i);
         }

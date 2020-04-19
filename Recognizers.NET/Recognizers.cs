@@ -7,7 +7,7 @@ namespace Recognizers
     /// <summary>
     /// Extension methods that implement recognizers atop <see cref="Input"/>.
     /// </summary>
-    public static class Recognizers
+    public static partial class Recognizers
     {
         #region Core recognizers
 
@@ -16,7 +16,7 @@ namespace Recognizers
         /// </summary>
         public static bool Fail(out ReadOnlySpan<char> capture)
         {
-            capture = default(ReadOnlySpan<char>);
+            capture = default;
             return false;
         }
 
@@ -25,92 +25,45 @@ namespace Recognizers
         /// </summary>
         public static bool Fail<T>(out T capture)
         {
-            capture = default(T);
+            capture = default;
             return false;
         }
 
         /// <summary>
         /// Recognition proceeds even without a match.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="match"></param>
-        /// <returns></returns>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="match">The optional rule's result.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool Optional(this Input x, bool match) => true;
-
-        /// <summary>
-        /// Recognize numbers.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool Digit(this Input x, ref Position pos) =>
-            pos.Pos < x.Length && char.IsNumber(x[pos]) && pos.Advance();
-
-        /// <summary>
-        /// Recognize numbers.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool Digit(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-               pos.Pos < x.Length && char.IsNumber(x[pos]) && pos.Advance(x, out capture)
-            || Fail(out capture);
-
-        /// <summary>
-        /// Recognize numbers.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool Digits(this Input x, ref Position pos)
-        {
-            var i = pos;
-            while (i.Pos < x.Length && char.IsNumber(x[i]))
-                ++i.Pos;
-            return pos.AdvanceTo(i);
-        }
-
-        /// <summary>
-        /// Recognize numbers.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool Digits(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
-        {
-            var i = pos;
-            while (i.Pos < x.Length && char.IsNumber(x[i]))
-                ++i.Pos;
-            return pos.AdvanceTo(i, x, out capture);
-        }
 
         /// <summary>
         /// Recognize a string value.
         /// </summary>
-        /// <param name="x"></param>
+        /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="text"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool Literal(this Input x, string text, ref Position pos) =>
             x.Literal(text, ref pos, StringComparison.Ordinal);
 
         /// <summary>
         /// Recognize a string value.
         /// </summary>
-        /// <param name="x"></param>
+        /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="text"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool Literal(this Input x, string text, ref Position pos, out ReadOnlySpan<char> capture) =>
             x.Literal(text, ref pos, StringComparison.Ordinal, out capture);
 
         /// <summary>
         /// Recognize a string value.
         /// </summary>
-        /// <param name="x"></param>
+        /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="text"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool Literal(this Input x, string text, ref Position pos, StringComparison compare) =>
                pos.Pos + text.Length < x.Length
             && text.AsSpan().Equals(x.Value.AsSpan(pos.Pos, text.Length), compare)
@@ -119,10 +72,10 @@ namespace Recognizers
         /// <summary>
         /// Recognize a string value.
         /// </summary>
-        /// <param name="x"></param>
+        /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="text"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool Literal(this Input x, string text, ref Position pos, StringComparison compare, out ReadOnlySpan<char> capture) =>
                pos.Pos + text.Length < x.Length
             && text.AsSpan().Equals(x.Value.AsSpan(pos.Pos, text.Length), compare)
@@ -132,89 +85,95 @@ namespace Recognizers
         /// <summary>
         /// Case insensitive recognition of a string.
         /// </summary>
-        /// <param name="x"></param>
+        /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="text"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool LiteralIgnoreCase(this Input x, string text, ref Position pos) =>
             x.Literal(text, ref pos, StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// Case insensitive recognition of a string.
         /// </summary>
-        /// <param name="x"></param>
+        /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="text"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool LiteralIgnoreCase(this Input x, string text, ref Position pos, out ReadOnlySpan<char> capture) =>
             x.Literal(text, ref pos, StringComparison.OrdinalIgnoreCase, out capture);
 
         /// <summary>
-        /// Recognize whitespace.
+        /// Recognise a character.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool WhiteSpace(this Input x, ref Position pos) =>
-            pos.Pos < x.Length && char.IsWhiteSpace(x[pos]) && pos.Advance();
-
-        /// <summary>
-        /// Recognize whitespace.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool WhiteSpace(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-               pos.Pos < x.Length && char.IsWhiteSpace(x[pos]) && pos.Advance(x, out capture)
-            || Fail(out capture);
-
-        /// <summary>
-        /// Recognize whitespace.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool WhiteSpaces(this Input x, ref Position pos)
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="c">The character to accept.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool Char(this Input x, ref Position pos, params char[] c)
         {
-            var i = pos;
-            while (i.Pos < x.Length && char.IsWhiteSpace(x[i]))
-                ++i.Pos;
-            return pos.AdvanceTo(i); //FIXME: semantics are + but what if we want * semantics?
-        }
-
-        /// <summary>
-        /// Recognize whitespace.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <param name="capture"></param>
-        /// <returns></returns>
-        public static bool WhiteSpaces(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
-        {
-            var i = pos;
-            while (i.Pos < x.Length && char.IsWhiteSpace(x[i]))
-                ++i.Pos;
-            return pos.AdvanceTo(i, x, out capture);
+            switch (c.Length)
+            {
+                case 0:
+                    return false;
+                case 1:
+                    return x.Char(c[0], ref pos);
+                case 2:
+                    return x.Char(c[0], ref pos)
+                        || x.Char(c[1], ref pos);
+                case 3:
+                    return x.Char(c[0], ref pos)
+                        || x.Char(c[1], ref pos)
+                        || x.Char(c[2], ref pos);
+                default:
+                    return Array.IndexOf(c, x[pos]) >= 0 && pos.Advance();
+            }
         }
 
         /// <summary>
         /// Recognise a character.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="c"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="c">The character to accept.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool Char(this Input x, ref Position pos, out ReadOnlySpan<char> capture, params char[] c)
+        {
+            switch (c.Length)
+            {
+                case 0:
+                    return Fail(out capture);
+                case 1:
+                    return x.Char(c[0], ref pos, out capture);
+                case 2:
+                    return x.Char(c[0], ref pos, out capture)
+                        || x.Char(c[1], ref pos, out capture);
+                case 3:
+                    return x.Char(c[0], ref pos, out capture)
+                        || x.Char(c[1], ref pos, out capture)
+                        || x.Char(c[2], ref pos, out capture);
+                default:
+                    return Array.IndexOf(c, x[pos]) >= 0 && pos.Advance(x, out capture)
+                        || Fail(out capture);
+            }
+        }
+
+        /// <summary>
+        /// Recognise a character.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="c">The character to accept.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool Char(this Input x, char c, ref Position pos) =>
             pos.Pos < x.Length && x[pos] == c && pos.Advance();
 
-
         /// <summary>
         /// Recognise a character.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="c"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="c">The character to accept.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool Char(this Input x, char c, ref Position pos, out ReadOnlySpan<char> capture) =>
                pos.Pos < x.Length && x[pos] == c && pos.Advance(x, out capture)
             || Fail(out capture);
@@ -222,11 +181,11 @@ namespace Recognizers
         /// <summary>
         /// Recognise a character.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="c"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool Chars(this Input x, char c, ref Position pos)
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="c">The character to accept.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool WhileChar(this Input x, char c, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length && x[i] == c)
@@ -237,11 +196,11 @@ namespace Recognizers
         /// <summary>
         /// Recognise a character.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="c"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool Chars(this Input x, char c, ref Position pos, out ReadOnlySpan<char> capture)
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="c">The character to accept.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool WhileChar(this Input x, char c, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
             while (i.Pos < x.Length && x[i] == c)
@@ -250,109 +209,13 @@ namespace Recognizers
         }
 
         /// <summary>
-        /// Consume all characters until the given character is seen.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="c"></param>
-        /// <param name="pos"></param>
-        public static bool CharsUntil(this Input x, char c, ref Position pos)
-        {
-            var i = pos;
-            while (i.Pos < x.Length && x[i] != c)
-                ++i.Pos;
-            return pos.AdvanceTo(i);
-        }
-
-        /// <summary>
-        /// Consume all characters until the given character is seen.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="c"></param>
-        /// <param name="pos"></param>
-        /// <param name="capture"></param>
-        /// <returns></returns>
-        public static bool CharsUntil(this Input x, char c, ref Position pos, out ReadOnlySpan<char> capture)
-        {
-            var i = pos;
-            while (i.Pos < x.Length && x[i] != c)
-                ++i.Pos;
-            return pos.AdvanceTo(i, x, out capture);
-        }
-
-        /// <summary>
-        /// Consume all characters until the given character is seen.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="c"></param>
-        /// <param name="pos"></param>
-        /// <param name="capture"></param>
-        /// <returns></returns>
-        public static bool CharsUntil(this Input x, ref Position pos, params char[] c)
-        {
-            var i = pos;
-            switch (c.Length)
-            {
-                case 0:
-                    return false;
-                case 1:
-                    return x.CharsUntil(c[0], ref pos);
-                case 2:
-                    while (i.Pos < x.Length && x[i] != c[0] && x[i] != c[1])
-                        ++i.Pos;
-                    break;
-                case 3:
-                    while (i.Pos < x.Length && x[i] != c[0] && x[i] != c[1] && x[i] != c[2])
-                        ++i.Pos;
-                    break;
-                default:
-                    while (i.Pos < x.Length && Array.IndexOf(c, x[i]) < 0)
-                        ++i.Pos;
-                    break;
-            }
-            return pos.AdvanceTo(i);
-        }
-
-        /// <summary>
-        /// Consume all characters until the given character is seen.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="c"></param>
-        /// <param name="pos"></param>
-        /// <param name="capture"></param>
-        /// <returns></returns>
-        public static bool CharsUntil(this Input x, ref Position pos, out ReadOnlySpan<char> capture, params char[] c)
-        {
-            var i = pos;
-            switch (c.Length)
-            {
-                case 0:
-                    return Fail(out capture);
-                case 1:
-                    return x.CharsUntil(c[0], ref pos, out capture);
-                case 2:
-                    while (i.Pos < x.Length && x[i] != c[0] && x[i] != c[1])
-                        ++i.Pos;
-                    break;
-                case 3:
-                    while (i.Pos < x.Length && x[i] != c[0] && x[i] != c[1] && x[i] != c[2])
-                        ++i.Pos;
-                    break;
-                default:
-                    while (i.Pos < x.Length && Array.IndexOf(c, x[i]) < 0)
-                        ++i.Pos;
-                    break;
-            }
-            return pos.AdvanceTo(i, x, out capture);
-        }
-
-        /// <summary>
         /// Recognise a character.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="c"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool Chars(this Input x, ref Position pos, params char[] c)
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="c">The characters to accept.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool WhileChar(this Input x, ref Position pos, params char[] c)
         {
             // statically expand the array access up to 4 entries
             var i = pos;
@@ -361,7 +224,7 @@ namespace Recognizers
                 case 0:
                     return false;
                 case 1:
-                    return x.Chars(c[0], ref pos);
+                    return x.WhileChar(c[0], ref pos);
                 case 2:
                     while (i.Pos < x.Length && (x[i] == c[0] || x[i] == c[1]))
                         ++i.Pos;
@@ -381,11 +244,11 @@ namespace Recognizers
         /// <summary>
         /// Recognise a character.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="c"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool Chars(this Input x, ref Position pos, out ReadOnlySpan<char> capture, params char[] c)
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="c">The characters to accept.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool WhileChar(this Input x, ref Position pos, out ReadOnlySpan<char> capture, params char[] c)
         {
             // statically expand the array access up to 4 entries
             var i = pos;
@@ -394,7 +257,7 @@ namespace Recognizers
                 case 0:
                     return Fail(out capture);
                 case 1:
-                    return x.Chars(c[0], ref pos, out capture);
+                    return x.WhileChar(c[0], ref pos, out capture);
                 case 2:
                     while (i.Pos < x.Length && (x[i] == c[0] || x[i] == c[1]))
                         ++i.Pos;
@@ -412,96 +275,145 @@ namespace Recognizers
         }
 
         /// <summary>
-        /// Recognize letters.
+        /// Consume all characters until the given character is seen.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool Letter(this Input x, ref Position pos) =>
-            pos.Pos < x.Length && char.IsLetter(x[pos]) && pos.Advance();
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="c">The character to accept.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        public static bool UntilChar(this Input x, char c, ref Position pos)
+        {
+            var i = pos;
+            while (i.Pos < x.Length && x[i] != c)
+                ++i.Pos;
+            return pos.AdvanceTo(i);
+        }
 
         /// <summary>
-        /// Recognize letters.
+        /// Consume all characters until the given character is seen.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool Letter(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-               pos.Pos < x.Length && char.IsLetter(x[pos]) && pos.Advance(x, out capture)
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="c">The character to accept.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <param name="capture">The characters that were recognized.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool UntilChar(this Input x, char c, ref Position pos, out ReadOnlySpan<char> capture)
+        {
+            var i = pos;
+            while (i.Pos < x.Length && x[i] != c)
+                ++i.Pos;
+            return pos.AdvanceTo(i, x, out capture);
+        }
+
+        /// <summary>
+        /// Consume all characters until the given character is seen.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="c">The character to accept.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <param name="capture">The characters that were recognized.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool UntilChar(this Input x, ref Position pos, params char[] c)
+        {
+            var i = pos;
+            switch (c.Length)
+            {
+                case 0:
+                    return false;
+                case 1:
+                    return x.UntilChar(c[0], ref pos);
+                case 2:
+                    while (i.Pos < x.Length && x[i] != c[0] && x[i] != c[1])
+                        ++i.Pos;
+                    break;
+                case 3:
+                    while (i.Pos < x.Length && x[i] != c[0] && x[i] != c[1] && x[i] != c[2])
+                        ++i.Pos;
+                    break;
+                default:
+                    while (i.Pos < x.Length && Array.IndexOf(c, x[i]) < 0)
+                        ++i.Pos;
+                    break;
+            }
+            return pos.AdvanceTo(i);
+        }
+
+        /// <summary>
+        /// Consume all characters until the given character is seen.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="c">The character to accept.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <param name="capture">The characters that were recognized.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool UntilChar(this Input x, ref Position pos, out ReadOnlySpan<char> capture, params char[] c)
+        {
+            var i = pos;
+            switch (c.Length)
+            {
+                case 0:
+                    return Fail(out capture);
+                case 1:
+                    return x.UntilChar(c[0], ref pos, out capture);
+                case 2:
+                    while (i.Pos < x.Length && x[i] != c[0] && x[i] != c[1])
+                        ++i.Pos;
+                    break;
+                case 3:
+                    while (i.Pos < x.Length && x[i] != c[0] && x[i] != c[1] && x[i] != c[2])
+                        ++i.Pos;
+                    break;
+                default:
+                    while (i.Pos < x.Length && Array.IndexOf(c, x[i]) < 0)
+                        ++i.Pos;
+                    break;
+            }
+            return pos.AdvanceTo(i, x, out capture);
+        }
+
+        /// <summary>
+        /// Recognize high surrogates.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool SurrogatePair(this Input x, ref Position pos) =>
+            pos.Pos < x.Length && pos.Save(out var i) && x.HighSurrogate(ref i) && x.LowSurrogate(ref i) && pos.AdvanceTo(i);
+            
+        /// <summary>
+        /// Recognize high surrogates.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool SurrogatePair(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
+               pos.Pos < x.Length && pos.Save(out var i) && x.HighSurrogate(ref i) && x.LowSurrogate(ref i) && pos.AdvanceTo(i, x, out capture)
             || Fail(out capture);
 
         /// <summary>
-        /// Recognize letters.
+        /// Recognize surrogate pairs.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool Letters(this Input x, ref Position pos)
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool WhileSurrogatePair(this Input x, ref Position pos)
         {
             var i = pos;
-            while (i.Pos < x.Length && char.IsLetter(x[i]))
+            while (i.Pos < x.Length && char.IsHighSurrogate(x[i]) && i.Advance() && char.IsLowSurrogate(x[i]))
                 ++i.Pos;
             return pos.AdvanceTo(i);
         }
 
         /// <summary>
-        /// Recognize letters.
+        /// Recognize surrogate pairs.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool Letters(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool WhileSurrogatePair(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
-            while (i.Pos < x.Length && char.IsLetter(x[i]))
-                ++i.Pos;
-            return pos.AdvanceTo(i, x, out capture);
-        }
-
-        /// <summary>
-        /// Recognize a letter or a digit.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool LetterOrDigit(this Input x, ref Position pos) =>
-            (x.Letter(ref pos) || x.Digit(ref pos)) && pos.Advance();
-
-
-        /// <summary>
-        /// Recognize a letter or a digit.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool LetterOrDigit(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-            x.Letter(ref pos, out capture) || x.Digit(ref pos, out capture);
-
-        /// <summary>
-        /// Recognize letters or digits.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool LettersOrDigits(this Input x, ref Position pos)
-        {
-            var i = pos;
-            while (i.Pos < x.Length && char.IsLetterOrDigit(x[i]))
-                ++i.Pos;
-            return pos.AdvanceTo(i);
-        }
-
-        /// <summary>
-        /// Recognize letters or digits.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        public static bool LettersOrDigits(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
-        {
-            var i = pos;
-            while (i.Pos < x.Length && char.IsLetterOrDigit(x[i]))
-                ++i.Pos;
+            while (i.Pos < x.Length && char.IsHighSurrogate(x[i]) && i.Advance() && char.IsLowSurrogate(x[i]))
+                    ++i.Pos;
             return pos.AdvanceTo(i, x, out capture);
         }
         #endregion
@@ -510,40 +422,40 @@ namespace Recognizers
         /// <summary>
         /// Recognize a phone number.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool PhoneNumber(this Input x, ref Position pos) =>
                pos.Save(out var i)
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && x.Optional(x.Char('+', ref i))
-            && x.Optional(x.WhiteSpaces(ref i))
-            && x.Optional(x.Digits(ref i))
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
+            && x.Optional(x.WhileDigit(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && x.Optional(x.BracketedDigits(ref i))
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && x.Optional(x.Char('/', ref i))
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && x.DelimitedDigits(ref i, ' ', '-')
             && pos.AdvanceTo(i);
 
         /// <summary>
         /// Recognize a phone number.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool PhoneNumber(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
                pos.Save(out var i)
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && x.Optional(x.Char('+', ref i))
-            && x.Optional(x.WhiteSpaces(ref i))
-            && x.Optional(x.Digits(ref i))
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
+            && x.Optional(x.WhileDigit(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && x.Optional(x.BracketedDigits(ref i))
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && x.Optional(x.Char('/', ref i))
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && x.DelimitedDigits(ref i, ' ', '-')
             && pos.AdvanceTo(i, x, out capture)
             || Fail(out capture);
@@ -551,20 +463,20 @@ namespace Recognizers
         /// <summary>
         /// Recognize a phone number.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool PhoneNumber(this Input x, ref Position pos, out List<string> capture) =>
                pos.Save(out var i)
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && x.Optional(x.Char('+', ref i))
-            && x.Optional(x.WhiteSpaces(ref i))
-            && x.Optional(x.Digits(ref i, out var d1))
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
+            && x.Optional(x.WhileDigit(ref i, out var d1))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && x.Optional(x.BracketedDigits(ref i, out var d2))
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && x.Optional(x.Char('/', ref i))
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && x.DelimitedDigits(ref i, out capture, ' ', '-')
             && (d2.Length == 0 || capture.Push(d2))
             && (d1.Length == 0 || capture.Push(d1))
@@ -578,39 +490,40 @@ namespace Recognizers
         }
 
         /// <summary>
-        /// 
+        /// A delimited sequence of digits with optional whitespace.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <param name="delimiters"></param>
-        /// <returns></returns>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool DelimitedDigits(this Input x, ref Position pos, params char[] delimiters)
         {
+            //FIXME: this is probably not correct, it needs only a single delimiter per digit? May need a loop "state" variable to track this.
             var i = pos;
             while (i.Pos < x.Length)
             {
-                if (!x.Digits(ref i) && !x.Chars(ref i, delimiters))
+                if (!x.WhileDigit(ref i) && !x.Char(ref i, delimiters))
                     break;
             }
             return pos.AdvanceTo(i);
         }
 
         /// <summary>
-        /// 
+        /// A delimited sequence of digits with optional whitespace.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <param name="delimiters"></param>
-        /// <returns></returns>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool DelimitedDigits(this Input x, ref Position pos, out List<string> capture, params char[] delimiters)
         {
             var i = pos;
             capture = null;
             while (i.Pos < x.Length)
             {
-                if (x.Digits(ref i, out var data))
+                if (x.WhileDigit(ref i, out var data))
                     (capture ?? (capture = new List<string>())).Add(data.ToString());
-                else if (!x.Chars(ref i, out data, delimiters))
+                else if (!x.Char(ref i, out data, delimiters))
                     break;
             }
             return pos.AdvanceTo(i);
@@ -619,15 +532,15 @@ namespace Recognizers
         /// <summary>
         /// A delimited sequence of digits with optional whitespace.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool DelimitedDigits(this Input x, char delimiter, ref Position pos)
         {
             var i = pos;
             while (i.Pos < x.Length)
             {
-                if (!x.Digits(ref i) && !x.Chars(delimiter, ref i))
+                if (!x.WhileDigit(ref i) && !x.Char(delimiter, ref i))
                     break;
             }
             return pos.AdvanceTo(i);
@@ -636,15 +549,15 @@ namespace Recognizers
         /// <summary>
         /// A delimited sequence of digits with optional whitespace.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool DelimitedDigits(this Input x, char delimiter, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
             while (i.Pos < x.Length)
             {
-                if (!x.Digits(ref i) && !x.Chars(delimiter, ref i))
+                if (!x.WhileDigit(ref i) && !x.Char(delimiter, ref i))
                     break;
             }
             return pos.AdvanceTo(i, x, out capture);
@@ -653,9 +566,9 @@ namespace Recognizers
         /// <summary>
         /// A delimited sequence of digits with optional whitespace.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool DelimitedDigits(this Input x, char delimiter, ref Position pos, out List<string> capture)
         {
             var i = pos;
@@ -663,7 +576,7 @@ namespace Recognizers
             while (i.Pos < x.Length)
             {
                 var data = default(ReadOnlySpan<char>);
-                if (x.Digits(ref i, out data) || x.Chars(delimiter, ref i, out data))
+                if (x.WhileDigit(ref i, out data) || x.WhileChar(delimiter, ref i, out data))
                     (capture ?? (capture = new List<string>())).Add(data.ToString());
                 else
                     break;
@@ -674,58 +587,58 @@ namespace Recognizers
         /// <summary>
         /// Digits surrounded by brackets.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool BracketedDigits(this Input x, ref Position pos) =>
-            pos.Save(out var i) && x.Chars('(', ref i) && x.Digits(ref i) && x.Chars(')', ref i) && pos.AdvanceTo(i);
+            pos.Save(out var i) && x.Char('(', ref i) && x.WhileDigit(ref i) && x.Char(')', ref i) && pos.AdvanceTo(i);
 
         /// <summary>
         /// Digits surrounded by brackets.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool BracketedDigits(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-               pos.Save(out var i) && x.Chars('(', ref i) && x.Digits(ref i, out capture) && x.Chars(')', ref i) && pos.AdvanceTo(i)
+               pos.Save(out var i) && x.Char('(', ref i) && x.WhileDigit(ref i, out capture) && x.Char(')', ref i) && pos.AdvanceTo(i)
             || Fail(out capture);
 
         /// <summary>
         /// A digit surrounded by brackets.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool BracketedDigit(this Input x, ref Position pos) =>
-            pos.Save(out var i) && x.Chars('(', ref i) && x.Digit(ref i) && x.Chars(')', ref i) && pos.AdvanceTo(i);
+            pos.Save(out var i) && x.Char('(', ref i) && x.Digit(ref i) && x.Char(')', ref i) && pos.AdvanceTo(i);
 
         /// <summary>
         /// A digit surrounded by brackets.
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool BracketedDigit(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-               pos.Save(out var i) && x.Chars('(', ref i) && x.Digit(ref i, out capture) && x.Chars(')', ref i) && pos.AdvanceTo(i)
+               pos.Save(out var i) && x.Char('(', ref i) && x.Digit(ref i, out capture) && x.Char(')', ref i) && pos.AdvanceTo(i)
             || Fail(out capture);
 
         /// <summary>
         /// Recognize a key-value pair, ie. foo="bar"
         /// </summary>
-        /// <param name="x"></param>
+        /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="eq"></param>
-        /// <param name="pos"></param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        /// <returns></returns>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool KeyValuePair(this Input x, ref Position pos, out ReadOnlySpan<char> key, out ReadOnlySpan<char> value, char eq = '=') =>
                pos.Save(out var i)
             && x.LetterOrDigit(ref i) // ensure starts with letter or digit
             && pos.Save(out i)        // backtrack one and resume
-            && x.CharsUntil(eq, ref i, out key)
+            && x.UntilChar(eq, ref i, out key)
             && x.Char(eq, ref i)
             && x.Char('"', ref i)
-            && x.CharsUntil('"', ref i, out value)
+            && x.UntilChar('"', ref i, out value)
             && x.Char('"', ref i)
             && pos.AdvanceTo(i)
             || Fail(out key) | Fail(out value);
@@ -733,34 +646,34 @@ namespace Recognizers
         /// <summary>
         /// Recognize a key-value pair, ie. foo="bar"
         /// </summary>
-        /// <param name="x"></param>
+        /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="eq"></param>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool KeyValuePair(this Input x, ref Position pos, char eq = '=') =>
                pos.Save(out var i)
-            && x.CharsUntil(eq, ref i)
+            && x.UntilChar(eq, ref i)
             && x.Char(eq, ref i)
             && x.Char('"', ref i)
-            && x.CharsUntil('"', ref i)
+            && x.UntilChar('"', ref i)
             && x.Char('"', ref i)
             && pos.AdvanceTo(i);
 
         /// <summary>
         /// Capture a set of key-value pairs.
         /// </summary>
-        /// <param name="x"></param>
+        /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="eq"></param>
-        /// <param name="pos"></param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <param name="kv"></param>
-        /// <returns></returns>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool KeyValuePairs(this Input x, ref Position pos, out Dictionary<string, string> kv, char eq = '=')
         {
             var i = pos;
             kv = new Dictionary<string, string>();
             while (i.Pos < x.Length)
             {
-                if (x.Optional(x.WhiteSpaces(ref i)) && x.KeyValuePair(ref i, out var key, out var value, eq))
+                if (x.Optional(x.WhileWhiteSpace(ref i)) && x.KeyValuePair(ref i, out var key, out var value, eq))
                     kv.Add(key.ToString(), value.ToString());
                 else
                     break;

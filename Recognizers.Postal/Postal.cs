@@ -7,7 +7,7 @@ namespace Recognizers.Postal
     /// <summary>
     /// Recognizers specific to mailing/postal addresses.
     /// </summary>
-    public static class Postal
+    public static partial class Postal
     {
         #region Core postal address recognizers
         /// <summary>
@@ -17,7 +17,7 @@ namespace Recognizers.Postal
         /// <param name="pos"></param>
         /// <returns></returns>
         public static bool ZipCode(this Input x, ref Position pos) =>
-            x.Digits(ref pos);
+            x.WhileDigit(ref pos);
 
         /// <summary>
         /// Recognize a zip code.
@@ -26,7 +26,7 @@ namespace Recognizers.Postal
         /// <param name="pos"></param>
         /// <returns></returns>
         public static bool ZipCode(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-            x.Digits(ref pos, out capture);
+            x.WhileDigit(ref pos, out capture);
 
         /// <summary>
         /// Recognize a Canadian postal code.
@@ -37,10 +37,10 @@ namespace Recognizers.Postal
         public static bool PostalCode(this Input x, ref Position pos)
         {
             var i = pos;
-            if (!x.LettersOrDigits(ref i, out var part1) || part1.Length != 3)
+            if (!x.WhileLetterOrDigit(ref i, out var part1) || part1.Length != 3)
                 return false;
-            x.Optional(x.WhiteSpaces(ref i));
-            return x.LettersOrDigits(ref i, out var part2) && part2.Length == 3 && pos.AdvanceTo(i);
+            x.Optional(x.WhileWhiteSpace(ref i));
+            return x.WhileLetterOrDigit(ref i, out var part2) && part2.Length == 3 && pos.AdvanceTo(i);
         }
 
         /// <summary>
@@ -52,10 +52,10 @@ namespace Recognizers.Postal
         public static bool PostalCode(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
-            if (!x.LettersOrDigits(ref i, out var part1) || part1.Length != 3)
+            if (!x.WhileLetterOrDigit(ref i, out var part1) || part1.Length != 3)
                 return Recognizers.Fail(out capture);
-            x.Optional(x.WhiteSpaces(ref i));
-            return x.LettersOrDigits(ref i, out var part2) && part2.Length == 3 && pos.AdvanceTo(i, x, out capture)
+            x.Optional(x.WhileWhiteSpace(ref i));
+            return x.WhileLetterOrDigit(ref i, out var part2) && part2.Length == 3 && pos.AdvanceTo(i, x, out capture)
                 || Recognizers.Fail(out capture);
         }
 
@@ -86,7 +86,7 @@ namespace Recognizers.Postal
         public static bool Attention(this Input x, ref Position pos) =>
                pos.Save(out var i)
             && x.AttentionLabel(ref i)
-            && x.Optional(x.Chars(':', ref i) || x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileChar(':', ref i) || x.WhileWhiteSpace(ref i))
             && pos.AdvanceTo(i);
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Recognizers.Postal
         public static bool Attention(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
                pos.Save(out var i)
             && x.AttentionLabel(ref i, out capture)
-            && x.Optional(x.Chars(':', ref i) || x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileChar(':', ref i) || x.WhileWhiteSpace(ref i))
             && pos.AdvanceTo(i)
             || Recognizers.Fail(out capture);
 
@@ -133,7 +133,7 @@ namespace Recognizers.Postal
         /// <returns></returns>
         public static bool CareOf(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
                pos.Save(out var i)
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && (x.LiteralIgnoreCase("C\\O", ref i) || x.LiteralIgnoreCase("C/O", ref i))
             && pos.AdvanceTo(i, x, out capture)
             || Recognizers.Fail(out capture);
@@ -146,7 +146,7 @@ namespace Recognizers.Postal
         /// <returns></returns>
         public static bool CareOf(this Input x, ref Position pos) =>
                pos.Save(out var i)
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && (x.LiteralIgnoreCase("C\\O", ref i) || x.LiteralIgnoreCase("C/O", ref i))
             && pos.AdvanceTo(i);
 
@@ -158,8 +158,8 @@ namespace Recognizers.Postal
         /// <returns></returns>
         public static bool City(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
                pos.Save(out var i)
-            && x.Optional(x.WhiteSpaces(ref i))
-            && x.Letters(ref i, out capture)
+            && x.Optional(x.WhileWhiteSpace(ref i))
+            && x.WhileLetter(ref i, out capture)
             && pos.AdvanceTo(i)
             || Recognizers.Fail(out capture);
 
@@ -171,8 +171,8 @@ namespace Recognizers.Postal
         /// <returns></returns>
         public static bool Country(this Input x, Dictionary<string, string> countries, out string country, ref Position pos) =>
                pos.Save(out var i)
-            && x.Optional(x.WhiteSpaces(ref i))
-            && x.Letters(ref i, out var word)
+            && x.Optional(x.WhileWhiteSpace(ref i))
+            && x.WhileLetter(ref i, out var word)
             && countries.TryGetValue(word.ToString(), out country)
             && pos.AdvanceTo(i)
             || Recognizers.Fail(out country);
@@ -185,8 +185,8 @@ namespace Recognizers.Postal
         /// <returns></returns>
         public static bool StateOrProvince(this Input x, Dictionary<string, string> provinces, out string province, ref Position pos) =>
                pos.Save(out var i)
-            && x.Optional(x.WhiteSpaces(ref i))
-            && x.Letters(ref i, out var word)
+            && x.Optional(x.WhileWhiteSpace(ref i))
+            && x.WhileLetter(ref i, out var word)
             && provinces.TryGetValue(word.ToString(), out province)
             && pos.AdvanceTo(i)
             || Recognizers.Fail(out province);
@@ -194,7 +194,7 @@ namespace Recognizers.Postal
         public static bool CityProvinceCountry(this Input x, out ReadOnlySpan<char> city, Dictionary<string, string> provinces, out string province, Dictionary<string, string> countries, out string country, ref Position pos) =>
                pos.Save(out var i)
             && x.CityProvince(out city, provinces, out province, ref i)
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && x.Optional(x.Char(',', ref i))
             && x.Country(countries, out country, ref i)
             || (Recognizers.Fail(out city) | Recognizers.Fail(out province) | Recognizers.Fail(out country));
@@ -202,10 +202,10 @@ namespace Recognizers.Postal
         public static bool CityProvince(this Input x, out ReadOnlySpan<char> city, Dictionary<string, string> provinces, out string province, ref Position pos) =>
                pos.Save(out var i)
             && x.City(ref i, out city)
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && x.Optional(x.Char(',', ref i))
             && x.StateOrProvince(provinces, out province, ref i)
-            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Optional(x.WhileWhiteSpace(ref i))
             && x.Optional(x.Char(',', ref i))
             || (Recognizers.Fail(out city) | Recognizers.Fail(out province));
         #endregion
@@ -218,13 +218,13 @@ namespace Recognizers.Postal
         /// <returns></returns>
         public static IEnumerable<Input> PhoneNos(this IEnumerable<Input> lines) =>
             lines.Where(x => x.Begin(out var pos)
-                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && x.Optional(x.WhileWhiteSpace(ref pos))
                           && (x.LiteralIgnoreCase("Fax", ref pos) || x.LiteralIgnoreCase("Phone", ref pos))
-                          && x.Optional(x.WhiteSpaces(ref pos))
-                          && x.Optional(x.Chars(':', ref pos))
-                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && x.Optional(x.WhileWhiteSpace(ref pos))
+                          && x.Optional(x.WhileChar(':', ref pos))
+                          && x.Optional(x.WhileWhiteSpace(ref pos))
                           && x.PhoneNumber(ref pos)
-                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && x.Optional(x.WhileWhiteSpace(ref pos))
                           && x.End(pos));
 
         /// <summary>
@@ -235,7 +235,7 @@ namespace Recognizers.Postal
         public static IEnumerable<Input> PostalCodes(this IEnumerable<Input> lines) =>
             lines.Where(x => x.Begin(out var pos)
                           && x.PostalOrZipCode(ref pos)
-                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && x.Optional(x.WhileWhiteSpace(ref pos))
                           && x.End(pos));
 
         /// <summary>
@@ -246,7 +246,7 @@ namespace Recognizers.Postal
         public static IEnumerable<Input> CitiesProvincesCountries(this IEnumerable<Input> lines, Dictionary<string, string> provinces, Dictionary<string, string> countries) =>
             lines.Where(x => x.Begin(out var pos)
                           && x.CityProvinceCountry(out var city, provinces, out var prov, countries, out var c, ref pos)
-                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && x.Optional(x.WhileWhiteSpace(ref pos))
                           && x.End(pos));
 
         /// <summary>
@@ -257,7 +257,7 @@ namespace Recognizers.Postal
         public static IEnumerable<Input> CitiesProvinces(this IEnumerable<Input> lines, Dictionary<string, string> provinces) =>
             lines.Where(x => x.Begin(out var pos)
                           && x.CityProvince(out var city, provinces, out var prov, ref pos)
-                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && x.Optional(x.WhileWhiteSpace(ref pos))
                           && x.End(pos));
 
         /// <summary>
@@ -268,7 +268,7 @@ namespace Recognizers.Postal
         public static IEnumerable<Input> Countries(this IEnumerable<Input> lines, Dictionary<string, string> countries) =>
             lines.Where(x => x.Begin(out var pos)
                           && x.Country(countries, out var c, ref pos)
-                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && x.Optional(x.WhileWhiteSpace(ref pos))
                           && x.End(pos));
 
         /// <summary>
@@ -278,9 +278,9 @@ namespace Recognizers.Postal
         /// <returns></returns>
         public static IEnumerable<Input> CareOf(this IEnumerable<Input> lines) =>
             lines.Where(x => x.Begin(out var pos)
-                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && x.Optional(x.WhileWhiteSpace(ref pos))
                           && x.CareOf(ref pos)
-                          && x.Optional(x.WhiteSpaces(ref pos))
+                          && x.Optional(x.WhileWhiteSpace(ref pos))
                           && x.End(pos));
 
         /// <summary>

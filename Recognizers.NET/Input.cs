@@ -106,7 +106,7 @@ namespace Recognizers
         {
             if (Pos == newPosition.Pos)
             {
-                capture = default(ReadOnlySpan<char>);
+                capture = default;
                 return false;
             }
             else

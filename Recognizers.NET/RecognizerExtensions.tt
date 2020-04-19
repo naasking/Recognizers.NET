@@ -1,0 +1,98 @@
+﻿<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<# var ops = new[] {
+    "Letter", "Digit", "WhiteSpace", "Symbol", "Separator", "Surrogate", "Punctuation",
+    "LetterOrDigit", "Lower", "Upper", "LowSurrogate", "HighSurrogate", "Control"
+}; #>
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Recognizers
+{
+    public static partial class Recognizers
+    {
+<#  foreach (var x in ops) { #>
+
+        /// <summary>
+        /// Recognize a <#=x#>.
+        /// </summary>
+        /// <param name="x">Apply the recognizer to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool <#=x#>(this Input x, ref Position pos) =>
+            pos.Pos < x.Length && char.Is<#=x#>(x[pos]) && pos.Advance();
+
+        /// <summary>
+        /// Recognize a <#=x#>.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <param name="capture">Capture the input that was recognized.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool <#=x#>(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
+               pos.Pos < x.Length && char.Is<#=x#>(x[pos]) && pos.Advance(x, out capture)
+            || Fail(out capture);
+            
+        /// <summary>
+        /// Recognize <#=x#>s.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool While<#=x#>(this Input x, ref Position pos)
+        {
+            var i = pos;
+            while (i.Pos < x.Length && char.Is<#=x#>(x[i]))
+                ++i.Pos;
+            return pos.AdvanceTo(i);
+        }
+
+        /// <summary>
+        /// Recognize <#=x#>s.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool While<#=x#>(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        {
+            var i = pos;
+            while (i.Pos < x.Length && char.Is<#=x#>(x[i]))
+                ++i.Pos;
+            return pos.AdvanceTo(i, x, out capture);
+        }
+
+        /// <summary>
+        /// Accept all characters until a <#=x#>.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool Until<#=x#>(this Input x, ref Position pos)
+        {
+            var i = pos;
+            while (i.Pos < x.Length && !char.Is<#=x#>(x[i]))
+                ++i.Pos;
+            return pos.AdvanceTo(i);
+        }
+
+        /// <summary>
+        /// Accept all characters until a <#=x#>.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool Until<#=x#>(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
+        {
+            var i = pos;
+            while (i.Pos < x.Length && !char.Is<#=x#>(x[i]))
+                ++i.Pos;
+            return pos.AdvanceTo(i, x, out capture);
+        }
+<#  } #>
+    }
+}
