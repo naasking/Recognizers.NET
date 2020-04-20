@@ -1,14 +1,17 @@
 # Recognizers.NET
 
 This is a simple combinator library for recognizing strings using only imperative constructs. It
-requires:
+features:
 
- 1. no allocation
+ 1. no heap allocation
  2. no higher-order functions
  3. no virtual dispatching
- 
-This makes the library incredibly efficient, and the API is also suitable
-for use in imperative languages, like C, which lack the above features.
+ 4. at least as powerful as regular expressions
+ 5. efficient variable capture
+
+This makes the library incredibly efficient. The API is also suitable
+for use in low-level imperative languages, like C, which either lack the above features,
+or are intended to be used without them.
 
 # Atoms
 
