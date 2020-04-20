@@ -15,7 +15,7 @@ namespace Recognizers.Bench
     [RPlotExporter]
     public class Bench
     {
-        const string regex = "[\x020]*[+]?[\x020]*[0-9]*[\x020]*([(][0-9]+[)])?[\x020]*[/]?([0-9-\x020])+";
+        const string regex = "[ ]*[+]?[ ]*[0-9]*[ ]*([(][0-9]+[)])?[ ]*/?([0-9- ])+";
         static string[] phonenos = new[]
         {
             "555-555",

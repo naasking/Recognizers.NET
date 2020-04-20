@@ -127,7 +127,7 @@ Englewood, CO";
             }
 
             // compare to regex
-            var rx = new System.Text.RegularExpressions.Regex("[\x020]*[+]?[\x020]*[0-9]*[\x020]*([(][0-9]+[)])?[\x020]*[/]?([0-9-\x020])+");
+            var rx = new System.Text.RegularExpressions.Regex("[ ]*[+]?[ ]*[0-9]*[ ]*([(][0-9]+[)])?[ ]*/?([0-9- ])+");
             var match = rx.Match(input);
             Assert.Equal(isPhoneNo, match.Success && match.Length == input.Length);
         }
