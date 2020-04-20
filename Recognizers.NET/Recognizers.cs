@@ -58,11 +58,41 @@ namespace Recognizers
             x.Literal(text, ref pos, StringComparison.Ordinal, out capture);
 
         /// <summary>
+        /// Recognize a series of repeated string values.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="text"></param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool Literals(this Input x, string text, ref Position pos)
+        {
+            var i = pos;
+            do { } while (x.Literal(text, ref i, StringComparison.Ordinal));
+            return pos.AdvanceTo(i);
+        }
+
+        /// <summary>
+        /// Recognize a series of repeated string values.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="text"></param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <param name="capture"></param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool Literals(this Input x, string text, ref Position pos, out ReadOnlySpan<char> capture)
+        {
+            var i = pos;
+            do { } while (x.Literal(text, ref i, StringComparison.Ordinal));
+            return pos.AdvanceTo(i, x, out capture);
+        }
+
+        /// <summary>
         /// Recognize a string value.
         /// </summary>
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="text"></param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <param name="compare">The type of string comparison.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool Literal(this Input x, string text, ref Position pos, StringComparison compare) =>
                pos.Pos + text.Length < x.Length
@@ -75,12 +105,44 @@ namespace Recognizers
         /// <param name="x">Apply the recognizers to this input.</param>
         /// <param name="text"></param>
         /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <param name="compare">The type of string comparison.</param>
+        /// <param name="capture">The captured input.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool Literal(this Input x, string text, ref Position pos, StringComparison compare, out ReadOnlySpan<char> capture) =>
                pos.Pos + text.Length < x.Length
             && text.AsSpan().Equals(x.Value.AsSpan(pos.Pos, text.Length), compare)
             && pos.AdvanceTo(new Position { Pos = pos.Pos + text.Length }, x, out capture)
             || Fail(out capture);
+
+        /// <summary>
+        /// Recognize a series of repeated string values.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="text"></param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool Literals(this Input x, string text, ref Position pos, StringComparison compare)
+        {
+            var i = pos;
+            do { } while (x.Literals(text, ref i, compare));
+            return pos.AdvanceTo(i);
+        }
+
+        /// <summary>
+        /// Recognize a series of repeated string values.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="text"></param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <param name="compare">The type of string comparison.</param>
+        /// <param name="capture">The captured input.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool Literals(this Input x, string text, ref Position pos, StringComparison compare, out ReadOnlySpan<char> capture)
+        {
+            var i = pos;
+            do { } while (x.Literals(text, ref i, compare));
+            return pos.AdvanceTo(i, x, out capture);
+        }
 
         /// <summary>
         /// Case insensitive recognition of a string.
@@ -101,6 +163,26 @@ namespace Recognizers
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool LiteralIgnoreCase(this Input x, string text, ref Position pos, out ReadOnlySpan<char> capture) =>
             x.Literal(text, ref pos, StringComparison.OrdinalIgnoreCase, out capture);
+
+        /// <summary>
+        /// Case insensitive recognition of a string.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="text"></param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool LiteralsIgnoreCase(this Input x, string text, ref Position pos) =>
+            x.Literals(text, ref pos, StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Case insensitive recognition of a string.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="text"></param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool LiteralsIgnoreCase(this Input x, string text, ref Position pos, out ReadOnlySpan<char> capture) =>
+            x.Literals(text, ref pos, StringComparison.OrdinalIgnoreCase, out capture);
 
         /// <summary>
         /// Recognise a character.
