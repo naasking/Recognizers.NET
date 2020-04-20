@@ -40,26 +40,43 @@ namespace Recognizers.Postal
     }
 }
 <#+
-string FetchCountries()
+string Fetch(string url)
 {
 	using (var web = new WebClient())
 	{
-		return web.DownloadString(new Uri("http://country.io/names.json"));
+		return web.DownloadString(new Uri(url));
 	}
 }
+string Load(string file, string url)
+{
+    var root = this.Host.ResolvePath(".");
+	var path = Path.Combine(root, file);
+	if (File.Exists(path))
+		return File.ReadAllText(path);
+	var data = Fetch(url);
+	File.WriteAllText(path, data);
+	return data;
+}
+string[] Split(string x) =>
+	x.Split(new[] { '\r', '\n', ':', '"', '{', '}' }, StringSplitOptions.RemoveEmptyEntries);
+
 Dictionary<string, string> Countries()
 {
     var root = this.Host.ResolvePath(".");
-	var path = Path.Combine(root, "countries.json");
-	if (!File.Exists(path))
-		File.WriteAllText(path, FetchCountries());
-	var countries = File.ReadAllText(path)
-						.Split(new[] { '\r', '\n', ':', '"', '{', '}' }, StringSplitOptions.RemoveEmptyEntries);
+	var countries = Split(Load("countries.json", "http://country.io/names.json"));
+	var iso = Split(Load("iso2_3.json", "http://country.io/iso3.json"));
 	var map = new Dictionary<string, string>();
+	// map ISO2 codes and case insensitive country name to normalized country name
 	for (int i = 0; i < countries.Length; i += 4)
 	{
 		map[countries[i]] = countries[i+2];
 		map[countries[i+2]] = countries[i+2];
+	}
+	// map ISO3 codes to normalized country name
+	for (int i = 0; i < iso.Length; i += 4)
+    {
+	    if (map.TryGetValue(iso[i], out var x))
+			map[iso[i + 2]] = x;
 	}
 	return map;
 }
