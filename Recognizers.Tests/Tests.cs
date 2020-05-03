@@ -223,7 +223,12 @@ Englewood, CO";
         [InlineData("x", "x", null)]
         [InlineData("x->x", "(x->x)", "(x->x)")]
         [InlineData("(x->x)", "(x->x)", "(x->x)")]
+        [InlineData("x->x x", "(x->x x)", "(x->x x)")]
+        [InlineData("(x->x x)", "(x->x x)", "(x->x x)")]
         [InlineData("(x->x) (y ->y)", "(x->x) (y->y)", "(y->y)")]
+        [InlineData("(x->x) (y ->y y)", "(x->x) (y->y y)", "(y->y y)")]
+        [InlineData("(x->x) (y ->y) (z->k)", "(x->x) (y->y) (z->k)", "(z->k)")]
+        [InlineData("(x->x) (y ->k) (z->z)", "(x->x) (y->k) (z->z)", null)]
         [InlineData("x->k", "(x->k)", "(x->k)")]
         public static void LambdaCalculus(string program, string parsed, string eval)
         {

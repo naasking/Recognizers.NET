@@ -98,8 +98,8 @@ namespace Recognizers.Tests
         static bool Parse(Input inp, ref Position pos, ref Rules rules, out LcTerm x)
         {
             inp.WhiteSpaces(ref pos);
-            return LcApply(inp, ref pos, ref rules, out x)
-                || LcLambda(inp, ref pos, ref rules, out x)
+            return LcLambda(inp, ref pos, ref rules, out x)
+                || LcApply(inp, ref pos, ref rules, out x)
                 || LcBracketed(inp, ref pos, ref rules, out x)
                 || LcVar(inp, ref pos, out x);
         }
