@@ -217,5 +217,20 @@ Englewood, CO";
             Assert.Empty(fooNested.Attributes);
             Assert.Empty(fooNested.Children);
         }
+
+
+        [Theory]
+        [InlineData("x", "x", null)]
+        [InlineData("x->x", "(x->x)", "(x->x)")]
+        [InlineData("(x->x)", "(x->x)", "(x->x)")]
+        [InlineData("(x->x) (y ->y)", "(x->x) (y->y)", "(y->y)")]
+        [InlineData("x->k", "(x->k)", "(x->k)")]
+        public static void LambdaCalculus(string program, string parsed, string eval)
+        {
+            var term = LcTerm.Parse(program);
+            var env = System.Collections.Immutable.ImmutableDictionary.Create<string, LcTerm>();
+            Assert.Equal(parsed, term.ToString());
+            Assert.Equal(eval, term.Eval(env)?.ToString());
+        }
     }
 }
