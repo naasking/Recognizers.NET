@@ -11,7 +11,7 @@ namespace Recognizers.Xml
             && x.Literal("<?xml", ref i)
             && x.KeyValuePairs(ref i, out attributes)
             && x.Literal("?>", ref i)
-            && pos.AdvanceTo(i)
+            && pos.Seek(i)
             || Recognizers.Fail(out attributes);
 
         public static bool XmlOpen(this Input x, ref Position pos, out ReadOnlySpan<char> tag, out bool selfClose, out Dictionary<string, string> attributes) =>
@@ -23,7 +23,7 @@ namespace Recognizers.Xml
             && x.Optional(x.WhiteSpaces(ref i))
             && x.Optional(x.Char('/', ref i, out var closed))
             && x.Char('>', ref i)
-            && pos.AdvanceTo(i)
+            && pos.Seek(i)
             && ((selfClose = closed.Length > 0) || true)
             || Recognizers.Fail(out tag) | Recognizers.Fail(out attributes) | (selfClose = false);
 
@@ -34,7 +34,7 @@ namespace Recognizers.Xml
             && x.Char('/', ref i)
             && x.UntilChar('>', ref i, out tag)
             && x.Char('>', ref i)
-            && pos.AdvanceTo(i)
+            && pos.Seek(i)
             || Recognizers.Fail(out tag);
 
         public static bool XmlNode(this Input x, ref Position pos, out Xml xml)
@@ -64,14 +64,14 @@ namespace Recognizers.Xml
             {
                 xml = default;
             }
-            return pos.AdvanceTo(i);
+            return pos.Seek(i);
         }
 
         public static bool Xml(this Input x, ref Position pos, out Xml xml, out Dictionary<string, string> attributes) =>
                pos.Save(out var i)
             && x.XmlStart(ref i, out attributes)
             && x.XmlNode(ref i, out xml)
-            && pos.AdvanceTo(i)
+            && pos.Seek(i)
             || Recognizers.Fail(out xml) | Recognizers.Fail(out attributes);
     }
 }

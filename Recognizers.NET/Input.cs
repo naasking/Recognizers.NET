@@ -64,6 +64,31 @@ namespace Recognizers
     }
 
     /// <summary>
+    /// Track a set of left-recursive rules.
+    /// </summary>
+    public struct Rules
+    {
+        uint flags;
+
+        /// <summary>
+        /// Check if the given rule number has been applied already.
+        /// </summary>
+        /// <param name="ruleId"></param>
+        /// <returns>True if the rule has already been applied, false otherwise.</returns>
+        public bool IsLoop(int ruleId)
+        {
+            uint mask =  1U << ruleId;
+            if (0 != (flags & mask))
+                return true;
+            flags |= mask;
+            return false;
+        }
+
+        internal void Reset() =>
+            flags = 0;
+    }
+
+    /// <summary>
     /// The current cursor's position.
     /// </summary>
     public ref struct Position
@@ -87,7 +112,7 @@ namespace Recognizers
         /// <param name="newPosition"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public bool AdvanceTo(Position newPosition)
+        public bool Seek(Position newPosition)
         {
             if (Pos == newPosition.Pos)
                 return false;
@@ -101,7 +126,27 @@ namespace Recognizers
         /// <param name="newPosition"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public bool AdvanceTo(Position newPosition, Input input, out ReadOnlySpan<char> capture)
+        public bool Seek(Position newPosition, ref Rules rules)
+        {
+            if (Pos == newPosition.Pos)
+            {
+                return false;
+            }
+            else
+            {
+                rules.Reset();
+                Pos = newPosition.Pos;
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Advance <paramref name="pos"/> to the position given by <paramref name="newPosition"/>.
+        /// </summary>
+        /// <param name="newPosition"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public bool Seek(Position newPosition, Input input, out ReadOnlySpan<char> capture)
         {
             if (Pos == newPosition.Pos)
             {
@@ -117,10 +162,32 @@ namespace Recognizers
         }
 
         /// <summary>
+        /// Advance <paramref name="pos"/> to the position given by <paramref name="newPosition"/>.
+        /// </summary>
+        /// <param name="newPosition"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public bool Seek(Position newPosition, Input input, out ReadOnlySpan<char> capture, ref Rules rules)
+        {
+            if (Pos == newPosition.Pos)
+            {
+                capture = default;
+                return false;
+            }
+            else
+            {
+                capture = input.Value.AsSpan(Pos, newPosition.Pos - Pos);
+                rules.Reset();
+                Pos = newPosition.Pos;
+                return true;
+            }
+        }
+
+        /// <summary>
         /// Increment.
         /// </summary>
         /// <returns></returns>
-        public bool Advance()
+        public bool Step()
         {
             Pos = Pos + 1;
             return true;
@@ -130,11 +197,31 @@ namespace Recognizers
         /// Increment.
         /// </summary>
         /// <returns></returns>
-        public bool Advance(Input input, out ReadOnlySpan<char> capture)
+        public bool Step(ref Rules rules)
+        {
+            rules.Reset();
+            return Step();
+        }
+
+        /// <summary>
+        /// Increment.
+        /// </summary>
+        /// <returns></returns>
+        public bool Step(Input input, out ReadOnlySpan<char> capture)
         {
             capture = input.Value.AsSpan(Pos, 1);
             Pos = Pos + 1;
             return true;
+        }
+
+        /// <summary>
+        /// Increment.
+        /// </summary>
+        /// <returns></returns>
+        public bool Step(Input input, out ReadOnlySpan<char> capture, ref Rules rules)
+        {
+            rules.Reset();
+            return Step(input, out capture);
         }
 
         /// <summary>

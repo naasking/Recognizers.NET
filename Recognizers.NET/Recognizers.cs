@@ -68,7 +68,7 @@ namespace Recognizers
         {
             var i = pos;
             do { } while (x.Literal(text, ref i, StringComparison.Ordinal));
-            return pos.AdvanceTo(i);
+            return pos.Seek(i);
         }
 
         /// <summary>
@@ -83,7 +83,101 @@ namespace Recognizers
         {
             var i = pos;
             do { } while (x.Literal(text, ref i, StringComparison.Ordinal));
-            return pos.AdvanceTo(i, x, out capture);
+            return pos.Seek(i, x, out capture);
+        }
+
+        /// <summary>
+        /// Recognize any characters until the given text is seen.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="text"></param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool UntilLiteral(this Input x, string text, ref Position pos) =>
+            x.UntilLiteral(text.AsSpan(), ref pos);
+
+        /// <summary>
+        /// Recognize any characters until the given text is seen.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="text"></param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <param name="capture"></param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool UntilLiteral(this Input x, string text, ref Position pos, out ReadOnlySpan<char> capture) =>
+            x.UntilLiteral(text.AsSpan(), ref pos, out capture);
+
+        /// <summary>
+        /// Recognize any characters until the given text is seen.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="text"></param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool UntilLiteral(this Input x, ReadOnlySpan<char> text, ref Position pos) =>
+            x.UntilLiteral(text, ref pos, StringComparison.Ordinal);
+
+        /// <summary>
+        /// Recognize any characters until the given text is seen.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="text"></param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <param name="capture"></param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool UntilLiteral(this Input x, ReadOnlySpan<char> text, ref Position pos, out ReadOnlySpan<char> capture) =>
+            x.UntilLiteral(text, ref pos, StringComparison.Ordinal, out capture);
+
+        /// <summary>
+        /// Recognize any characters until the given text is seen.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="text"></param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool UntilLiteralIgnoreCase(this Input x, ReadOnlySpan<char> text, ref Position pos) =>
+            x.UntilLiteral(text, ref pos, StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Recognize any characters until the given text is seen.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="text"></param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <param name="capture"></param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool UntilLiteralIgnoreCase(this Input x, ReadOnlySpan<char> text, ref Position pos, out ReadOnlySpan<char> capture) =>
+            x.UntilLiteral(text, ref pos, StringComparison.OrdinalIgnoreCase, out capture);
+
+        /// <summary>
+        /// Recognize any characters until the given text is seen.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="text"></param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool UntilLiteral(this Input x, ReadOnlySpan<char> text, ref Position pos, StringComparison compare)
+        {
+            var i = pos;
+            while (!x.Literal(text, ref i, compare))
+                ++i.Pos;
+            return pos.Seek(i);
+        }
+
+        /// <summary>
+        /// Recognize any characters until the given text is seen.
+        /// </summary>
+        /// <param name="x">Apply the recognizers to this input.</param>
+        /// <param name="text"></param>
+        /// <param name="pos">The position at which the recognizer should start processing.</param>
+        /// <param name="capture"></param>
+        /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
+        public static bool UntilLiteral(this Input x, ReadOnlySpan<char> text, ref Position pos, StringComparison compare, out ReadOnlySpan<char> capture)
+        {
+            var i = pos;
+            while (!x.Literal(text, ref i, compare))
+                ++i.Pos;
+            return pos.Seek(i, x, out capture);
         }
 
         /// <summary>
@@ -97,7 +191,7 @@ namespace Recognizers
         public static bool Literal(this Input x, ReadOnlySpan<char> text, ref Position pos, StringComparison compare) =>
                pos.Pos + text.Length < x.Length
             && text.Equals(x.Value.AsSpan(pos.Pos, text.Length), compare)
-            && pos.AdvanceTo(new Position { Pos = pos.Pos + text.Length });
+            && pos.Seek(new Position { Pos = pos.Pos + text.Length });
 
         /// <summary>
         /// Recognize a string value.
@@ -111,7 +205,7 @@ namespace Recognizers
         public static bool Literal(this Input x, ReadOnlySpan<char> text, ref Position pos, StringComparison compare, out ReadOnlySpan<char> capture) =>
                pos.Pos + text.Length < x.Length
             && text.Equals(x.Value.AsSpan(pos.Pos, text.Length), compare)
-            && pos.AdvanceTo(new Position { Pos = pos.Pos + text.Length }, x, out capture)
+            && pos.Seek(new Position { Pos = pos.Pos + text.Length }, x, out capture)
             || Fail(out capture);
 
         /// <summary>
@@ -148,7 +242,7 @@ namespace Recognizers
         {
             var i = pos;
             do { } while (x.Literal(text, ref i, compare));
-            return pos.AdvanceTo(i);
+            return pos.Seek(i);
         }
 
         /// <summary>
@@ -164,7 +258,7 @@ namespace Recognizers
         {
             var i = pos;
             do { } while (x.Literal(text, ref i, compare));
-            return pos.AdvanceTo(i, x, out capture);
+            return pos.Seek(i, x, out capture);
         }
 
         /// <summary>
@@ -292,7 +386,7 @@ namespace Recognizers
                         || x.Char(c[1], ref pos)
                         || x.Char(c[2], ref pos);
                 default:
-                    return Array.IndexOf(c, x[pos]) >= 0 && pos.Advance();
+                    return Array.IndexOf(c, x[pos]) >= 0 && pos.Step();
             }
         }
 
@@ -319,7 +413,7 @@ namespace Recognizers
                         || x.Char(c[1], ref pos, out capture)
                         || x.Char(c[2], ref pos, out capture);
                 default:
-                    return Array.IndexOf(c, x[pos]) >= 0 && pos.Advance(x, out capture)
+                    return Array.IndexOf(c, x[pos]) >= 0 && pos.Step(x, out capture)
                         || Fail(out capture);
             }
         }
@@ -332,7 +426,7 @@ namespace Recognizers
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool Char(this Input x, char c, ref Position pos) =>
-            pos.Pos < x.Length && x[pos] == c && pos.Advance();
+            pos.Pos < x.Length && x[pos] == c && pos.Step();
 
         /// <summary>
         /// Recognise a character.
@@ -342,7 +436,7 @@ namespace Recognizers
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool Char(this Input x, char c, ref Position pos, out ReadOnlySpan<char> capture) =>
-               pos.Pos < x.Length && x[pos] == c && pos.Advance(x, out capture)
+               pos.Pos < x.Length && x[pos] == c && pos.Step(x, out capture)
             || Fail(out capture);
 
         /// <summary>
@@ -357,7 +451,7 @@ namespace Recognizers
             var i = pos;
             while (i.Pos < x.Length && x[i] == c)
                 ++i.Pos;
-            return pos.AdvanceTo(i);
+            return pos.Seek(i);
         }
 
         /// <summary>
@@ -372,7 +466,7 @@ namespace Recognizers
             var i = pos;
             while (i.Pos < x.Length && x[i] == c)
                 ++i.Pos;
-            return pos.AdvanceTo(i, x, out capture);
+            return pos.Seek(i, x, out capture);
         }
 
         /// <summary>
@@ -405,7 +499,7 @@ namespace Recognizers
                         ++i.Pos;
                     break;
             }
-            return pos.AdvanceTo(i);
+            return pos.Seek(i);
         }
 
         /// <summary>
@@ -438,7 +532,7 @@ namespace Recognizers
                         ++i.Pos;
                     break;
             }
-            return pos.AdvanceTo(i, x, out capture);
+            return pos.Seek(i, x, out capture);
         }
 
         /// <summary>
@@ -452,7 +546,7 @@ namespace Recognizers
             var i = pos;
             while (i.Pos < x.Length && x[i] != c)
                 ++i.Pos;
-            return pos.AdvanceTo(i);
+            return pos.Seek(i);
         }
 
         /// <summary>
@@ -468,7 +562,7 @@ namespace Recognizers
             var i = pos;
             while (i.Pos < x.Length && x[i] != c)
                 ++i.Pos;
-            return pos.AdvanceTo(i, x, out capture);
+            return pos.Seek(i, x, out capture);
         }
 
         /// <summary>
@@ -501,7 +595,7 @@ namespace Recognizers
                         ++i.Pos;
                     break;
             }
-            return pos.AdvanceTo(i);
+            return pos.Seek(i);
         }
 
         /// <summary>
@@ -534,7 +628,7 @@ namespace Recognizers
                         ++i.Pos;
                     break;
             }
-            return pos.AdvanceTo(i, x, out capture);
+            return pos.Seek(i, x, out capture);
         }
 
         /// <summary>
@@ -544,7 +638,7 @@ namespace Recognizers
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool SurrogatePair(this Input x, ref Position pos) =>
-            pos.Save(out var i) && x.HighSurrogate(ref i) && x.LowSurrogate(ref i) && pos.AdvanceTo(i);
+            pos.Save(out var i) && x.HighSurrogate(ref i) && x.LowSurrogate(ref i) && pos.Seek(i);
             
         /// <summary>
         /// Recognize high surrogates.
@@ -553,7 +647,7 @@ namespace Recognizers
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool SurrogatePair(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-               pos.Save(out var i) && x.HighSurrogate(ref i) && x.LowSurrogate(ref i) && pos.AdvanceTo(i, x, out capture)
+               pos.Save(out var i) && x.HighSurrogate(ref i) && x.LowSurrogate(ref i) && pos.Seek(i, x, out capture)
             || Fail(out capture);
 
         /// <summary>
@@ -565,9 +659,9 @@ namespace Recognizers
         public static bool WhileSurrogatePair(this Input x, ref Position pos)
         {
             var i = pos;
-            while (i.Pos < x.Length && char.IsHighSurrogate(x[i]) && i.Advance() && char.IsLowSurrogate(x[i]))
+            while (i.Pos < x.Length && char.IsHighSurrogate(x[i]) && i.Step() && char.IsLowSurrogate(x[i]))
                 ++i.Pos;
-            return pos.AdvanceTo(i);
+            return pos.Seek(i);
         }
 
         /// <summary>
@@ -579,9 +673,9 @@ namespace Recognizers
         public static bool WhileSurrogatePair(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
-            while (i.Pos < x.Length && char.IsHighSurrogate(x[i]) && i.Advance() && char.IsLowSurrogate(x[i]))
+            while (i.Pos < x.Length && char.IsHighSurrogate(x[i]) && i.Step() && char.IsLowSurrogate(x[i]))
                 ++i.Pos;
-            return pos.AdvanceTo(i, x, out capture);
+            return pos.Seek(i, x, out capture);
         }
         /// <summary>
         /// Accept all chars up to a surrogate pair.
@@ -592,9 +686,9 @@ namespace Recognizers
         public static bool UntilSurrogatePair(this Input x, ref Position pos)
         {
             var i = pos;
-            while (i.Pos < x.Length && !(char.IsHighSurrogate(x[i]) && i.Advance() && char.IsLowSurrogate(x[i])))
+            while (i.Pos < x.Length && !(char.IsHighSurrogate(x[i]) && i.Step() && char.IsLowSurrogate(x[i])))
                 ++i.Pos;
-            return pos.AdvanceTo(i);
+            return pos.Seek(i);
         }
 
         /// <summary>
@@ -606,9 +700,9 @@ namespace Recognizers
         public static bool UntilSurrogatePair(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
-            while (i.Pos < x.Length && !(char.IsHighSurrogate(x[i]) && i.Advance() && char.IsLowSurrogate(x[i])))
+            while (i.Pos < x.Length && !(char.IsHighSurrogate(x[i]) && i.Step() && char.IsLowSurrogate(x[i])))
                 ++i.Pos;
-            return pos.AdvanceTo(i, x, out capture);
+            return pos.Seek(i, x, out capture);
         }
         #endregion
 
@@ -631,7 +725,7 @@ namespace Recognizers
             && x.Optional(x.Char('/', ref i))
             && x.Optional(x.WhiteSpaces(ref i))
             && x.DelimitedDigits(ref i, ' ', '-')
-            && pos.AdvanceTo(i);
+            && pos.Seek(i);
 
         /// <summary>
         /// Recognize a phone number.
@@ -651,7 +745,7 @@ namespace Recognizers
             && x.Optional(x.Char('/', ref i))
             && x.Optional(x.WhiteSpaces(ref i))
             && x.DelimitedDigits(ref i, ' ', '-')
-            && pos.AdvanceTo(i, x, out capture)
+            && pos.Seek(i, x, out capture)
             || Fail(out capture);
 
         /// <summary>
@@ -674,7 +768,7 @@ namespace Recognizers
             && x.DelimitedDigits(ref i, out capture, ' ', '-')
             && (d2.Length == 0 || capture.Push(d2))
             && (d1.Length == 0 || capture.Push(d1))
-            && pos.AdvanceTo(i)
+            && pos.Seek(i)
             || Fail(out capture);
 
         static bool Push(this List<string> capture, ReadOnlySpan<char> arg)
@@ -701,7 +795,7 @@ namespace Recognizers
                 if (!x.Digits(ref i) && !x.Char(ref i, delimiters))
                     break;
             }
-            return pos.AdvanceTo(i);
+            return pos.Seek(i);
         }
 
         /// <summary>
@@ -722,7 +816,7 @@ namespace Recognizers
                 else if (!x.Char(ref i, out data, delimiters))
                     break;
             }
-            return pos.AdvanceTo(i);
+            return pos.Seek(i);
         }
 
         /// <summary>
@@ -739,7 +833,7 @@ namespace Recognizers
                 if (!x.Digits(ref i) && !x.Char(delimiter, ref i))
                     break;
             }
-            return pos.AdvanceTo(i);
+            return pos.Seek(i);
         }
 
         /// <summary>
@@ -756,7 +850,7 @@ namespace Recognizers
                 if (!x.Digits(ref i) && !x.Char(delimiter, ref i))
                     break;
             }
-            return pos.AdvanceTo(i, x, out capture);
+            return pos.Seek(i, x, out capture);
         }
 
         /// <summary>
@@ -777,7 +871,7 @@ namespace Recognizers
                 else
                     break;
             }
-            return pos.AdvanceTo(i);
+            return pos.Seek(i);
         }
 
         /// <summary>
@@ -787,7 +881,7 @@ namespace Recognizers
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool BracketedDigits(this Input x, ref Position pos) =>
-            pos.Save(out var i) && x.Char('(', ref i) && x.Digits(ref i) && x.Char(')', ref i) && pos.AdvanceTo(i);
+            pos.Save(out var i) && x.Char('(', ref i) && x.Digits(ref i) && x.Char(')', ref i) && pos.Seek(i);
 
         /// <summary>
         /// Digits surrounded by brackets.
@@ -796,7 +890,7 @@ namespace Recognizers
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool BracketedDigits(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-               pos.Save(out var i) && x.Char('(', ref i) && x.Digits(ref i, out capture) && x.Char(')', ref i) && pos.AdvanceTo(i)
+               pos.Save(out var i) && x.Char('(', ref i) && x.Digits(ref i, out capture) && x.Char(')', ref i) && pos.Seek(i)
             || Fail(out capture);
 
         /// <summary>
@@ -806,7 +900,7 @@ namespace Recognizers
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool BracketedDigit(this Input x, ref Position pos) =>
-            pos.Save(out var i) && x.Char('(', ref i) && x.Digit(ref i) && x.Char(')', ref i) && pos.AdvanceTo(i);
+            pos.Save(out var i) && x.Char('(', ref i) && x.Digit(ref i) && x.Char(')', ref i) && pos.Seek(i);
 
         /// <summary>
         /// A digit surrounded by brackets.
@@ -815,7 +909,7 @@ namespace Recognizers
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool BracketedDigit(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-               pos.Save(out var i) && x.Char('(', ref i) && x.Digit(ref i, out capture) && x.Char(')', ref i) && pos.AdvanceTo(i)
+               pos.Save(out var i) && x.Char('(', ref i) && x.Digit(ref i, out capture) && x.Char(')', ref i) && pos.Seek(i)
             || Fail(out capture);
 
         /// <summary>
@@ -836,7 +930,7 @@ namespace Recognizers
             && x.Char('"', ref i)
             && x.UntilChar('"', ref i, out value)
             && x.Char('"', ref i)
-            && pos.AdvanceTo(i)
+            && pos.Seek(i)
             || Fail(out key) | Fail(out value);
 
         /// <summary>
@@ -855,7 +949,7 @@ namespace Recognizers
             && x.Char('"', ref i)
             && x.UntilChar('"', ref i)
             && x.Char('"', ref i)
-            && pos.AdvanceTo(i);
+            && pos.Seek(i);
 
         /// <summary>
         /// Capture a set of key-value pairs.
@@ -876,7 +970,7 @@ namespace Recognizers
                 else
                     break;
             }
-            return pos.AdvanceTo(i);
+            return pos.Seek(i);
         }
         #endregion
     }

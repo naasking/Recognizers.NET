@@ -34,14 +34,16 @@ namespace Recognizers.Postal
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool PostalCode(this Input x, ref Position pos)
-        {
-            var i = pos;
-            if (!x.LettersOrDigits(ref i, out var part1) || part1.Length != 3)
-                return false;
-            x.Optional(x.WhiteSpaces(ref i));
-            return x.LettersOrDigits(ref i, out var part2) && part2.Length == 3 && pos.AdvanceTo(i);
-        }
+        public static bool PostalCode(this Input x, ref Position pos) =>
+            pos.Save(out var i)
+            && x.Letter(ref i)
+            && x.Digit(ref i)
+            && x.Letter(ref i)
+            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Digit(ref i)
+            && x.Letter(ref i)
+            && x.Digit(ref i)
+            && pos.Seek(i);
 
         /// <summary>
         /// Recognize a Canadian postal code.
@@ -49,15 +51,17 @@ namespace Recognizers.Postal
         /// <param name="x"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public static bool PostalCode(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
-        {
-            var i = pos;
-            if (!x.LettersOrDigits(ref i, out var part1) || part1.Length != 3)
-                return Recognizers.Fail(out capture);
-            x.Optional(x.WhiteSpaces(ref i));
-            return x.LettersOrDigits(ref i, out var part2) && part2.Length == 3 && pos.AdvanceTo(i, x, out capture)
-                || Recognizers.Fail(out capture);
-        }
+        public static bool PostalCode(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
+               pos.Save(out var i)
+            && x.Letter(ref i)
+            && x.Digit(ref i)
+            && x.Letter(ref i)
+            && x.Optional(x.WhiteSpaces(ref i))
+            && x.Digit(ref i)
+            && x.Letter(ref i)
+            && x.Digit(ref i)
+            && pos.Seek(i, x, out capture)
+            || Recognizers.Fail(out capture);
 
         /// <summary>
         /// Recognize a postal or zip code.
@@ -87,7 +91,7 @@ namespace Recognizers.Postal
                pos.Save(out var i)
             && x.AttentionLabel(ref i)
             && x.Optional(x.Chars(':', ref i) || x.WhiteSpaces(ref i))
-            && pos.AdvanceTo(i);
+            && pos.Seek(i);
 
         /// <summary>
         /// Recognize an "Attention:" line.
@@ -99,7 +103,7 @@ namespace Recognizers.Postal
                pos.Save(out var i)
             && x.AttentionLabel(ref i, out capture)
             && x.Optional(x.Chars(':', ref i) || x.WhiteSpaces(ref i))
-            && pos.AdvanceTo(i)
+            && pos.Seek(i)
             || Recognizers.Fail(out capture);
 
         /// <summary>
@@ -109,9 +113,9 @@ namespace Recognizers.Postal
         /// <param name="pos"></param>
         /// <returns></returns>
         public static bool AttentionLabel(this Input x, ref Position pos) =>
-               pos.Save(out var i) && x.LiteralIgnoreCase("Attention", ref i) && pos.AdvanceTo(i)
-            || pos.Save(out i) && x.LiteralIgnoreCase("Attn", ref i) && pos.AdvanceTo(i)
-            || pos.Save(out i) && x.LiteralIgnoreCase("Att", ref i) && pos.AdvanceTo(i);
+               pos.Save(out var i) && x.LiteralIgnoreCase("Attention", ref i) && pos.Seek(i)
+            || pos.Save(out i) && x.LiteralIgnoreCase("Attn", ref i) && pos.Seek(i)
+            || pos.Save(out i) && x.LiteralIgnoreCase("Att", ref i) && pos.Seek(i);
 
         /// <summary>
         /// Recognize an attention label.
@@ -120,9 +124,9 @@ namespace Recognizers.Postal
         /// <param name="pos"></param>
         /// <returns></returns>
         public static bool AttentionLabel(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-               pos.Save(out var i) && x.LiteralIgnoreCase("Attention", ref i) && pos.AdvanceTo(i, x, out capture)
-            || pos.Save(out i) && x.LiteralIgnoreCase("Attn", ref i) && pos.AdvanceTo(i, x, out capture)
-            || pos.Save(out i) && x.LiteralIgnoreCase("Att", ref i) && pos.AdvanceTo(i, x, out capture)
+               pos.Save(out var i) && x.LiteralIgnoreCase("Attention", ref i) && pos.Seek(i, x, out capture)
+            || pos.Save(out i) && x.LiteralIgnoreCase("Attn", ref i) && pos.Seek(i, x, out capture)
+            || pos.Save(out i) && x.LiteralIgnoreCase("Att", ref i) && pos.Seek(i, x, out capture)
             || Recognizers.Fail(out capture);
 
         /// <summary>
@@ -135,7 +139,7 @@ namespace Recognizers.Postal
                pos.Save(out var i)
             && x.Optional(x.WhiteSpaces(ref i))
             && (x.LiteralIgnoreCase("C\\O", ref i) || x.LiteralIgnoreCase("C/O", ref i))
-            && pos.AdvanceTo(i, x, out capture)
+            && pos.Seek(i, x, out capture)
             || Recognizers.Fail(out capture);
 
         /// <summary>
@@ -148,7 +152,7 @@ namespace Recognizers.Postal
                pos.Save(out var i)
             && x.Optional(x.WhiteSpaces(ref i))
             && (x.LiteralIgnoreCase("C\\O", ref i) || x.LiteralIgnoreCase("C/O", ref i))
-            && pos.AdvanceTo(i);
+            && pos.Seek(i);
 
         /// <summary>
         /// Recognize a city name.
@@ -160,7 +164,7 @@ namespace Recognizers.Postal
                pos.Save(out var i)
             && x.Optional(x.WhiteSpaces(ref i))
             && x.Letters(ref i, out capture)
-            && pos.AdvanceTo(i)
+            && pos.Seek(i)
             || Recognizers.Fail(out capture);
 
         /// <summary>
@@ -174,7 +178,7 @@ namespace Recognizers.Postal
             && x.Optional(x.WhiteSpaces(ref i))
             && x.Letters(ref i, out var word)
             && countries.TryGetValue(word.ToString(), out country)
-            && pos.AdvanceTo(i)
+            && pos.Seek(i)
             || Recognizers.Fail(out country);
 
         /// <summary>
@@ -188,7 +192,7 @@ namespace Recognizers.Postal
             && x.Optional(x.WhiteSpaces(ref i))
             && x.Letters(ref i, out var word)
             && provinces.TryGetValue(word.ToString(), out province)
-            && pos.AdvanceTo(i)
+            && pos.Seek(i)
             || Recognizers.Fail(out province);
 
         public static bool CityProvinceCountry(this Input x, out ReadOnlySpan<char> city, Dictionary<string, string> provinces, out string province, Dictionary<string, string> countries, out string country, ref Position pos) =>
