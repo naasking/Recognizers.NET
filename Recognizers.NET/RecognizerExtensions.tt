@@ -27,7 +27,7 @@ namespace Recognizers
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool <#=x#>(this Input x, ref Position pos) =>
-            pos.Pos < x.Length && char.Is<#=x#>(x[pos]) && pos.Advance();
+            pos.Pos < x.Length && char.Is<#=x#>(x[pos]) && pos.Step();
 
         /// <summary>
         /// Recognize a <#=x#>.
@@ -37,7 +37,7 @@ namespace Recognizers
         /// <param name="capture">Capture the input that was recognized.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool <#=x#>(this Input x, ref Position pos, out ReadOnlySpan<char> capture) =>
-               pos.Pos < x.Length && char.Is<#=x#>(x[pos]) && pos.Advance(x, out capture)
+               pos.Pos < x.Length && char.Is<#=x#>(x[pos]) && pos.Step(x, out capture)
             || Fail(out capture);
             
         /// <summary>
@@ -51,7 +51,7 @@ namespace Recognizers
             var i = pos;
             while (i.Pos < x.Length && char.Is<#=x#>(x[i]))
                 ++i.Pos;
-            return pos.AdvanceTo(i);
+            return pos.Seek(i);
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Recognizers
             var i = pos;
             while (i.Pos < x.Length && char.Is<#=x#>(x[i]))
                 ++i.Pos;
-            return pos.AdvanceTo(i, x, out capture);
+            return pos.Seek(i, x, out capture);
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace Recognizers
             var i = pos;
             while (i.Pos < x.Length && !char.Is<#=x#>(x[i]))
                 ++i.Pos;
-            return pos.AdvanceTo(i);
+            return pos.Seek(i);
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace Recognizers
             var i = pos;
             while (i.Pos < x.Length && !char.Is<#=x#>(x[i]))
                 ++i.Pos;
-            return pos.AdvanceTo(i, x, out capture);
+            return pos.Seek(i, x, out capture);
         }
 <#  } #>
     }
