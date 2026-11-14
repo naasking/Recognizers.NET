@@ -72,9 +72,11 @@ namespace Recognizers
     /// caller or by a sibling alternative. Marks expire as soon as a check is made at a different
     /// position, so nothing needs to reset them.
     ///
-    /// This stops left recursion rather than implementing it: a rule's leftmost operand can never be
-    /// the rule itself, so <c>e ::= e e</c> parses <c>x y z</c> as <c>x (y z)</c>. Parse
-    /// left-associative syntax with a loop instead.
+    /// This stops left recursion rather than implementing it: a rule's left-recursive call always
+    /// fails where the rule is already active, so the rule can extend its other alternatives only
+    /// once. With <c>e ::= e '-' t | t</c>, <c>a-b-c</c> matches only <c>a-b</c>. To implement left
+    /// recursion, use <see cref="Recognizers.Grow{T}(Input, ref Position, LeftRecursiveRule{T}, out T)"/>,
+    /// or parse left-associative syntax with a loop.
     /// </remarks>
     public struct Rules
     {
