@@ -37,7 +37,10 @@ namespace Recognizers.Tests
                 case LcLambda lam:
                     return $"({lam.Var}->{lam.Body})";
                 case LcApply app:
-                    return $"{app.Lambda} {app.Arg}";
+                    // application is left associative, so only an application in argument position needs brackets
+                    return app.Arg is LcApply
+                        ? $"{app.Lambda} ({app.Arg})"
+                        : $"{app.Lambda} {app.Arg}";
                 default:
                     throw new Exception("Impossible!");
             }
@@ -54,62 +57,62 @@ namespace Recognizers.Tests
             return false;
         }
 
-        static bool LcLambda(Input inp, ref Position pos, ref Rules rules, out LcTerm x)
+        static bool LcLambda(Input inp, ref Position pos, out LcTerm x)
         {
             var i = pos;
             if (inp.Letters(ref i, out var v) &&
                 inp.Optional(inp.WhiteSpaces(ref i)) &&
                 inp.Literal("->", ref i) &&
-                Parse(inp, ref i, ref rules, out var body))
+                Parse(inp, ref i, out var body))
             {
                 x = new LcLambda { Var = v.ToString(), Body = body };
-                return pos.Seek(i, ref rules);
+                return pos.Seek(i);
             }
             return Recognizers.Fail(out x);
         }
 
-        static bool LcBracketed(Input inp, ref Position pos, ref Rules rules, out LcTerm x)
+        static bool LcBracketed(Input inp, ref Position pos, out LcTerm x)
         {
             var i = pos;
             if (inp.Char('(', ref i) &&
-                Parse(inp, ref i, ref rules, out x) &&
+                Parse(inp, ref i, out x) &&
                 inp.Optional(inp.WhiteSpaces(ref i)) &&
                 inp.Char(')', ref i))
             {
-                return pos.Seek(i, ref rules);
+                return pos.Seek(i);
             }
             return Recognizers.Fail(out x);
         }
 
-        static bool LcApply(Input inp, ref Position pos, ref Rules rules, out LcTerm x)
+        // operand ::= v->e | (e) | v
+        // A lambda's body extends as far right as possible.
+        static bool LcOperand(Input inp, ref Position pos, out LcTerm x) =>
+               LcLambda(inp, ref pos, out x)
+            || LcBracketed(inp, ref pos, out x)
+            || LcVar(inp, ref pos, out x);
+
+        // e ::= operand (whitespace operand)*
+        // Application is folded to the left: a b c = (a b) c.
+        static bool Parse(Input inp, ref Position pos, out LcTerm x)
         {
             var i = pos;
-            if (!rules.IsLoop(1) &&
-                Parse(inp, ref i, ref rules, out var lambda) &&
-                inp.WhiteSpaces(ref i) &&
-                Parse(inp, ref i, ref rules, out var arg))
+            inp.WhiteSpaces(ref i);
+            if (!LcOperand(inp, ref i, out x))
+                return false;
+            var j = i;
+            while (inp.WhiteSpaces(ref j) && LcOperand(inp, ref j, out var arg))
             {
-                x = new LcApply { Lambda = lambda, Arg = arg };
-                return pos.Seek(i, ref rules);
+                x = new LcApply { Lambda = x, Arg = arg };
+                i = j;
             }
-            return Recognizers.Fail(out x);
-        }
-
-        static bool Parse(Input inp, ref Position pos, ref Rules rules, out LcTerm x)
-        {
-            inp.WhiteSpaces(ref pos);
-            return LcLambda(inp, ref pos, ref rules, out x)
-                || LcApply(inp, ref pos, ref rules, out x)
-                || LcBracketed(inp, ref pos, ref rules, out x)
-                || LcVar(inp, ref pos, out x);
+            return pos.Seek(i);
         }
 
         public static LcTerm Parse(string input)
         {
             var inp = new Input(input);
             var pos = new Position();
-            var rules = new Rules();
-            return Parse(inp, ref pos, ref rules, out var x)
+            return Parse(inp, ref pos, out var x) && inp.End(pos)
                 ? x
                 : throw new Exception("Parse error");
         }

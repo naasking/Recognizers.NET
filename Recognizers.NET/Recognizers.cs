@@ -159,7 +159,7 @@ namespace Recognizers
         public static bool UntilLiteral(this Input x, ReadOnlySpan<char> text, ref Position pos, StringComparison compare)
         {
             var i = pos;
-            while (!x.Literal(text, ref i, compare))
+            while (i.Pos < x.Length && !x.LiteralAt(text, i, compare))
                 ++i.Pos;
             return pos.Seek(i);
         }
@@ -175,10 +175,22 @@ namespace Recognizers
         public static bool UntilLiteral(this Input x, ReadOnlySpan<char> text, ref Position pos, StringComparison compare, out ReadOnlySpan<char> capture)
         {
             var i = pos;
-            while (!x.Literal(text, ref i, compare))
+            while (i.Pos < x.Length && !x.LiteralAt(text, i, compare))
                 ++i.Pos;
             return pos.Seek(i, x, out capture);
         }
+
+        /// <summary>
+        /// Check whether the input at the given position starts with the given text, without consuming it.
+        /// </summary>
+        /// <param name="x">The input to check.</param>
+        /// <param name="text">The text to look for.</param>
+        /// <param name="pos">The position at which to look.</param>
+        /// <param name="compare">The type of string comparison.</param>
+        /// <returns>True if <paramref name="text"/> fits in the rest of the input and equals it.</returns>
+        static bool LiteralAt(this Input x, ReadOnlySpan<char> text, Position pos, StringComparison compare) =>
+               text.Length <= x.Length - pos.Pos
+            && text.Equals(x.Value.AsSpan(pos.Pos, text.Length), compare);
 
         /// <summary>
         /// Recognize a string value.
@@ -189,8 +201,7 @@ namespace Recognizers
         /// <param name="compare">The type of string comparison.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool Literal(this Input x, ReadOnlySpan<char> text, ref Position pos, StringComparison compare) =>
-               pos.Pos + text.Length < x.Length
-            && text.Equals(x.Value.AsSpan(pos.Pos, text.Length), compare)
+               x.LiteralAt(text, pos, compare)
             && pos.Seek(new Position { Pos = pos.Pos + text.Length });
 
         /// <summary>
@@ -203,8 +214,7 @@ namespace Recognizers
         /// <param name="capture">The captured input.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool Literal(this Input x, ReadOnlySpan<char> text, ref Position pos, StringComparison compare, out ReadOnlySpan<char> capture) =>
-               pos.Pos + text.Length < x.Length
-            && text.Equals(x.Value.AsSpan(pos.Pos, text.Length), compare)
+               x.LiteralAt(text, pos, compare)
             && pos.Seek(new Position { Pos = pos.Pos + text.Length }, x, out capture)
             || Fail(out capture);
 
@@ -386,7 +396,7 @@ namespace Recognizers
                         || x.Char(c[1], ref pos)
                         || x.Char(c[2], ref pos);
                 default:
-                    return Array.IndexOf(c, x[pos]) >= 0 && pos.Step();
+                    return pos.Pos < x.Length && Array.IndexOf(c, x[pos]) >= 0 && pos.Step(x);
             }
         }
 
@@ -413,7 +423,7 @@ namespace Recognizers
                         || x.Char(c[1], ref pos, out capture)
                         || x.Char(c[2], ref pos, out capture);
                 default:
-                    return Array.IndexOf(c, x[pos]) >= 0 && pos.Step(x, out capture)
+                    return pos.Pos < x.Length && Array.IndexOf(c, x[pos]) >= 0 && pos.Step(x, out capture)
                         || Fail(out capture);
             }
         }
@@ -426,7 +436,7 @@ namespace Recognizers
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool Char(this Input x, char c, ref Position pos) =>
-            pos.Pos < x.Length && x[pos] == c && pos.Step();
+            pos.Pos < x.Length && x[pos] == c && pos.Step(x);
 
         /// <summary>
         /// Recognise a character.
@@ -659,8 +669,8 @@ namespace Recognizers
         public static bool WhileSurrogatePair(this Input x, ref Position pos)
         {
             var i = pos;
-            while (i.Pos < x.Length && char.IsHighSurrogate(x[i]) && i.Step() && char.IsLowSurrogate(x[i]))
-                ++i.Pos;
+            while (x.SurrogatePairAt(i.Pos))
+                i.Pos += 2;
             return pos.Seek(i);
         }
 
@@ -673,8 +683,8 @@ namespace Recognizers
         public static bool WhileSurrogatePair(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
-            while (i.Pos < x.Length && char.IsHighSurrogate(x[i]) && i.Step() && char.IsLowSurrogate(x[i]))
-                ++i.Pos;
+            while (x.SurrogatePairAt(i.Pos))
+                i.Pos += 2;
             return pos.Seek(i, x, out capture);
         }
         /// <summary>
@@ -686,7 +696,7 @@ namespace Recognizers
         public static bool UntilSurrogatePair(this Input x, ref Position pos)
         {
             var i = pos;
-            while (i.Pos < x.Length && !(char.IsHighSurrogate(x[i]) && i.Step() && char.IsLowSurrogate(x[i])))
+            while (i.Pos < x.Length && !x.SurrogatePairAt(i.Pos))
                 ++i.Pos;
             return pos.Seek(i);
         }
@@ -700,10 +710,19 @@ namespace Recognizers
         public static bool UntilSurrogatePair(this Input x, ref Position pos, out ReadOnlySpan<char> capture)
         {
             var i = pos;
-            while (i.Pos < x.Length && !(char.IsHighSurrogate(x[i]) && i.Step() && char.IsLowSurrogate(x[i])))
+            while (i.Pos < x.Length && !x.SurrogatePairAt(i.Pos))
                 ++i.Pos;
             return pos.Seek(i, x, out capture);
         }
+
+        /// <summary>
+        /// Check whether a whole surrogate pair starts at the given index, without consuming it.
+        /// </summary>
+        /// <param name="x">The input to check.</param>
+        /// <param name="k">The index of the high surrogate.</param>
+        /// <returns>True if the characters at <paramref name="k"/> and <paramref name="k"/> + 1 form a surrogate pair.</returns>
+        static bool SurrogatePairAt(this Input x, int k) =>
+            k + 1 < x.Length && char.IsSurrogatePair(x.Value[k], x.Value[k + 1]);
         #endregion
 
         #region Extensions

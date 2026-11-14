@@ -27,7 +27,7 @@ namespace Recognizers
         /// <param name="pos">The position at which the recognizer should start processing.</param>
         /// <returns>True if the input at the given position matches the recognizer's rule.</returns>
         public static bool <#=x#>(this Input x, ref Position pos) =>
-            pos.Pos < x.Length && char.Is<#=x#>(x[pos]) && pos.Step();
+            pos.Pos < x.Length && char.Is<#=x#>(x[pos]) && pos.Step(x);
 
         /// <summary>
         /// Recognize a <#=x#>.
